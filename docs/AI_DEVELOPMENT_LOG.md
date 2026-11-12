@@ -98,3 +98,12 @@ Références consultées : [Tailwind avec Vite](https://tailwindcss.com/docs/ins
 - `npm run build` exécuté avec Node 24.22.3 : succès, 87 modules, 607 ms. Sortie : `index-Ch6ICoFB.css` et `index-ZpnKr3aj.js`.
 - Police WOFF2 et logos copiés dans `dist/` ; l’URL de police est préfixée pour GitHub Pages. Dans le navigateur, DM Sans est chargée et les actions principales ont un texte blanc sur le bleu officiel.
 - Le dossier de preuves locales contient les comparaisons de référence/implémentation et les vues après correction. Aucun écran client privé n’est ajouté aux fichiers publiés.
+
+### Publication de l’adaptation visuelle
+
+- Commit applicatif : `d30a5dfe3a308147b28edd8c4161768d6cf98451`.
+- [GitHub Actions 43248012207](https://github.com/Maximousse2A/pony-agent-app/actions/runs/43248012207) terminé avec succès ; déploiement Pages `7741556361` sur ce même commit.
+- HTML, favicon, JavaScript, CSS, police WOFF2 et les deux logos publiés répondent HTTP 200 et ont les mêmes empreintes SHA-256 que les fichiers locaux.
+- Vérification publique dans le navigateur : nouvelle DA affichée sur la mission déjà sélectionnée, la carte et les revenus ; document et panneau de mission à 390 px sans débordement ; aucune erreur ni avertissement console. La police WOFF2 apparaît dans l’inventaire des ressources de la page.
+- La mission active et les données du navigateur public ont été préservées ; aucun reset public effectué. La page publique précédemment ouverte a été rechargée pour montrer la nouvelle version.
+- Les captures finales de la version publique restent dans les livrables locaux, hors du dépôt. README et état de livraison mis à jour dans un commit documentaire distinct.

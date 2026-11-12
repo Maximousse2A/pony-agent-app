@@ -6,7 +6,7 @@ Prototype mobile-first pour le case study « Senior Product Manager, Internal Pr
 
 ## Lancer le projet
 
-Node.js 22.12 ou version ultérieure :
+Node.js 24 LTS recommandé ; validation locale effectuée avec Node.js 24.22.3 :
 
 ```sh
 npm ci
@@ -35,6 +35,12 @@ Le build statique se trouve dans `dist/`. Le workflow `.github/workflows/deploy.
 
 Le scan, le déverrouillage et le contrôle au dépôt sont simulés. Une photo ou une position simulée est explicitement marquée comme telle. Le scénario de validation permet de démontrer l’état métier ; il ne constitue pas une vérification automatique réelle du véhicule.
 
+## Identité visuelle
+
+La direction visuelle reprend les captures Pony fournies et le [kit média officiel](https://getapony.com/presse#KIT-MEDIA) : violet `#321E64`, bleu roi `#321ED3`, cyan `#00FFFF`, corail `#FE6D80` et blanc. Les mots-symboles SVG blanc et violet proviennent du kit officiel.
+
+DM Sans est incluse localement sous licence SIL OFL 1.1 comme approximation libre de la typographie ; elle n’est pas présentée comme la police exacte de l’application Pony. Les sources, licences et choix d’adaptation figurent dans [les références de marque](docs/BRAND_REFERENCES.md). Les captures fixes ne permettent pas de déterminer les animations d’origine ; les transitions du prototype sont des choix de réalisation et respectent la préférence de réduction des mouvements.
+
 ## Organisation
 
 | Emplacement                   | Rôle                                                          |
@@ -49,6 +55,7 @@ Le scan, le déverrouillage et le contrôle au dépôt sont simulés. Une photo 
 | `docs/AI_DEVELOPMENT_LOG.md`  | Journal éditorial du développement assisté par IA             |
 | `docs/discovery.md`           | Registre de discovery, sans conclusions inventées             |
 | `docs/DEMO_RULES.md`          | Règles contractuelles et hypothèses de prototype              |
+| `docs/BRAND_REFERENCES.md`    | Sources de marque, palette, typographie et limites de reproduction |
 
 ## Persistance et limites
 
