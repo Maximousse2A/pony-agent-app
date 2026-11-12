@@ -71,3 +71,12 @@ Références consultées : [Tailwind avec Vite](https://tailwindcss.com/docs/ins
 - Des compilations intermédiaires ont été interrompues après blocage sans activité CPU. Une piste liée à Vite 8 a été examinée, mais Vite 7 présentait aussi le symptôme : la cause n’est donc pas attribuée avec certitude à Rolldown. Les traces Tailwind montraient la fin rapide de la génération CSS.
 - L’inspection des fichiers ouverts montrait le chargement de centaines d’icônes inutilisées. Les imports passent désormais par les 36 points d’entrée publics des seules icônes utilisées, regroupés dans `src/components/icons.js`. La compilation a ensuite abouti ; le mécanisme exact du blocage local n’est pas présenté comme établi.
 - L’installation des dépendances finales a signalé **0 vulnérabilité**. Les versions reproductibles sont conservées dans `package-lock.json`.
+
+### Publication et validation après déploiement
+
+- Premier commit applicatif : `17cf48da1e2a4b716613a8ba4731ba6f5a086e9c`, poussé sur `main`.
+- [GitHub Actions 43210965005](https://github.com/Maximousse2A/pony-agent-app/actions/runs/43210965005) : terminé avec succès, installation, tests, compilation et publication réussis.
+- URL publiée vérifiée : https://maximousse2a.github.io/pony-agent-app/. HTML, favicon, CSS et JavaScript renvoient HTTP 200 ; les actifs JS/CSS correspondent octet pour octet au build local.
+- La version de production locale a aussi été parcourue pour une récupération pour recharge jusqu’à approbation. La version publique a été parcourue pour un retour atelier jusqu’au dépôt en attente, avec photo et position simulées visibles dans l’historique. Les quatre types ont donc maintenant été parcourus dans le navigateur, en plus des tests de domaine.
+- Version publique réinitialisée avant remise. Aucun avertissement ou erreur dans sa console au contrôle final. Captures téléphone et ordinateur conservées dans les livrables locaux.
+- Voir `RELEASE_STATUS.md` pour l’état vérifié et les limites. Le brief privé et l’export des messages visibles sont conservés localement, en dehors du dépôt public. Le journal reste distinct d’un export intégral des conversations.

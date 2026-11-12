@@ -2,6 +2,8 @@
 
 Prototype mobile-first pour le case study « Senior Product Manager, Internal Products & AI ». Interface en français, données fictives à Angers, React + Vite + Tailwind CSS, sans backend ni authentification réelle.
 
+**[Ouvrir la démo publiée](https://maximousse2a.github.io/pony-agent-app/)** · [État de livraison vérifié](docs/RELEASE_STATUS.md) · [Journal du développement assisté par IA](docs/AI_DEVELOPMENT_LOG.md)
+
 ## Lancer le projet
 
 Node.js 22.12 ou version ultérieure :
