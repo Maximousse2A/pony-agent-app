@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  History,
-  MapPin,
-  ChevronRight,
-  AlertCircle,
-  Check,
-} from './icons.js';
+import { History, MapPin, ChevronRight, AlertCircle, Check } from "./icons.js";
 import {
   MISSION_TYPES,
   currency as money,
@@ -20,11 +14,11 @@ export default function HistoryPage({ history, dispatch, filter, setFilter }) {
     .filter((m) => filter === "all" || m.status === filter)
     .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
   return (
-    <section className="content-page">
-      <div className="page-heading">
+    <section className="content-page history-page">
+      <div className="page-heading pony-page-heading">
         <div>
           <div className="eyebrow">CHAQUE INTERVENTION COMPTE</div>
-          <h1>Vos missions, en détail.</h1>
+          <h1 className="font-black">Vos missions, en détail.</h1>
           <p>Retrouvez vos dépôts et leur statut de validation.</p>
         </div>
         <div className="page-heading-icon">

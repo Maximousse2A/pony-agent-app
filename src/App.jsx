@@ -16,7 +16,7 @@ import {
   SlidersHorizontal,
   CheckCircle2,
   FileDown,
-} from './components/icons.js';
+} from "./components/icons.js";
 import {
   reducer,
   MISSION_TYPES,
@@ -41,9 +41,13 @@ function timeLeft(value, now) {
 function Brand() {
   return (
     <div className="brand">
-      <span>
-        pony<span className="brand-period">.</span>
-      </span>
+      <img
+        className="brand-logo"
+        src={`${import.meta.env.BASE_URL}brand/pony-white.svg`}
+        alt="pony"
+        width="124"
+        height="43"
+      />
       <span className="brand-caption">TERRAIN</span>
     </div>
   );

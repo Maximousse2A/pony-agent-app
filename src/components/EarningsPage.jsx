@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Wallet, CheckCircle2, ArrowUpRight, History } from './icons.js';
+import { Wallet, CheckCircle2, ArrowUpRight, History } from "./icons.js";
 import {
   MISSION_TYPES,
   currency as money,
@@ -36,11 +36,11 @@ export default function EarningsPage({ history }) {
   }));
   const max = Math.max(...chart.map((d) => d.amount), 10);
   return (
-    <section className="content-page">
-      <div className="page-heading">
+    <section className="content-page earnings-page">
+      <div className="page-heading pony-page-heading">
         <div>
           <div className="eyebrow">UNE VISION CLAIRE DE VOTRE ACTIVITÉ</div>
-          <h1>Le fruit de vos missions.</h1>
+          <h1 className="font-black">Le fruit de vos missions.</h1>
           <p>Des montants transparents, du dépôt à l’approbation.</p>
         </div>
         <div className="page-heading-icon">

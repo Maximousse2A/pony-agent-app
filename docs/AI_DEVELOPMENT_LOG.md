@@ -80,3 +80,21 @@ Références consultées : [Tailwind avec Vite](https://tailwindcss.com/docs/ins
 - La version de production locale a aussi été parcourue pour une récupération pour recharge jusqu’à approbation. La version publique a été parcourue pour un retour atelier jusqu’au dépôt en attente, avec photo et position simulées visibles dans l’historique. Les quatre types ont donc maintenant été parcourus dans le navigateur, en plus des tests de domaine.
 - Version publique réinitialisée avant remise. Aucun avertissement ou erreur dans sa console au contrôle final. Captures téléphone et ordinateur conservées dans les livrables locaux.
 - Voir `RELEASE_STATUS.md` pour l’état vérifié et les limites. Le brief privé et l’export des messages visibles sont conservés localement, en dehors du dépôt public. Le journal reste distinct d’un export intégral des conversations.
+
+## 12 novembre 2026 · Adaptation à l’identité Pony
+
+- Demande : reprendre la direction artistique de six captures fournies de l’application clients et adapter le prototype existant, notamment couleurs, typographie et transitions.
+- Vérification du [kit média officiel Pony](https://getapony.com/presse#KIT-MEDIA) : palette exacte et vrais logos. Documentation des sources, droits et limites dans `BRAND_REFERENCES.md` ; originaux privés et code de parrainage absents du dépôt.
+- Matter est identifiée sur le site officiel, sans preuve de la police embarquée dans l’app mobile. DM Sans variable sous SIL OFL est embarquée localement comme alternative proche ; elle n’est pas présentée comme la police officielle de l’app.
+- Fond et en-têtes violets, actions bleues, accents cyan/corail, surfaces blanches, boutons en pilule, carte lavande, panneaux arrondis, titres plus lourds. Palette appliquée à la carte, aux missions, au dépôt, à l’historique et aux revenus.
+- Transitions de panneaux, apparition du contenu et appui discret ajoutés ; réduction des animations prise en compte. Aucun mouvement exact n’est prétendu déduit des captures fixes.
+- Échec temporaire d’ouverture locale : lecture d’un fichier de dépendance bloquée, observée dans un échantillon du processus. Réextraction propre par `npm ci`, puis aperçu démarré avec Node 24.22.3. Aucun défaut de Node/Vite/Tailwind n’est affirmé comme cause. Aucun mécanisme de signature système n’a été contourné.
+- Les dix tests existants de domaine/dates passent. Parcours batterie rejoué dans le navigateur : scan incorrect/correct, déverrouillage, checklist, reprise après rechargement, preuves simulées, rejet motivé à 0 €. Reset et navigation vérifiés.
+- Comparaisons côte à côte avec les sources et contrôle focalisé des actions conservés localement. Correction de l’identifiant coupé, du badge débordant à 320 px et des anciennes couleurs des repères. `design-qa.md` : `final result: passed`.
+- La Partie 2 reste non construite ; aucune conclusion d’entretien n’est tirée des captures clients.
+
+### Vérification avant publication de la DA
+
+- `npm run build` exécuté avec Node 24.22.3 : succès, 87 modules, 607 ms. Sortie : `index-Ch6ICoFB.css` et `index-ZpnKr3aj.js`.
+- Police WOFF2 et logos copiés dans `dist/` ; l’URL de police est préfixée pour GitHub Pages. Dans le navigateur, DM Sans est chargée et les actions principales ont un texte blanc sur le bleu officiel.
+- Le dossier de preuves locales contient les comparaisons de référence/implémentation et les vues après correction. Aucun écran client privé n’est ajouté aux fichiers publiés.
