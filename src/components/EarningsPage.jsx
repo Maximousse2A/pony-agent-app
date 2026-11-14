@@ -39,9 +39,8 @@ export default function EarningsPage({ history }) {
     <section className="content-page earnings-page">
       <div className="page-heading pony-page-heading">
         <div>
-          <div className="eyebrow">UNE VISION CLAIRE DE VOTRE ACTIVITÉ</div>
-          <h1 className="font-black">Le fruit de vos missions.</h1>
-          <p>Des montants transparents, du dépôt à l’approbation.</p>
+          <h1>Revenus</h1>
+          <p>Montants approuvés, en attente et non rémunérés.</p>
         </div>
         <div className="page-heading-icon">
           <Wallet size={27} />
@@ -98,7 +97,7 @@ export default function EarningsPage({ history }) {
       </div>
       <div className="chart-card">
         <div className="section-title">
-          <h2>Votre semaine en un regard</h2>
+          <h2>Revenus approuvés par jour</h2>
           <span>Revenus approuvés</span>
         </div>
         <div

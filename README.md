@@ -25,13 +25,15 @@ Le build statique se trouve dans `dist/`. Le workflow `.github/workflows/deploy.
 
 ## Parcours de démonstration
 
-1. Sélectionner une mission sur la carte ou dans la liste. Consulter sa création, son motif, son délai et son montant.
-2. Démarrer la mission, simuler le scan du véhicule correspondant puis le déverrouillage.
-3. Cocher les trois étapes adaptées au type de mission : batterie, relocalisation, recharge ou atelier.
-4. Ajouter une photo ou utiliser le justificatif de démonstration. La position est demandée au navigateur au dépôt ; une position simulée reste disponible en cas de refus ou d’indisponibilité.
-5. Choisir un scénario de démonstration : attente, approbation ou rejet motivé. Envoyer le dépôt.
-6. Retrouver la mission dans l’historique et constater son effet sur les revenus. Les montants rejetés ne sont pas ajoutés aux revenus approuvés.
-7. Recharger la page pour vérifier la sauvegarde locale. Utiliser « Réinitialiser la démo » pour retrouver les données initiales avec de nouveaux délais.
+La liste compacte affiche le véhicule, sa batterie, le délai, le lieu de départ, la destination et le montant. Sur la carte, les marqueurs proches sont regroupés pour éviter les cibles superposées ; ouvrir un groupe permet de choisir l’identifiant exact du véhicule.
+
+1. Sélectionner une mission. Le parcours tient sur deux écrans : **Intervention**, puis **Preuve de dépôt**.
+2. Dans l’intervention, utiliser « Scanner et ouvrir » : une seule action simule le scan du véhicule correspondant et son déverrouillage. Un identifiant différent est refusé.
+3. Réaliser les trois points affichés pour le type de mission, puis les confirmer explicitement avec « Terminé, prendre la photo ». Cette action propose la photo au moment du dépôt.
+4. Ajouter une photo. La position est demandée automatiquement au navigateur ; un secours clairement simulé reste disponible si nécessaire. Le bouton principal reste fixé en bas de l’écran.
+5. Envoyer le dépôt pour contrôle. Pour explorer une approbation ou un rejet motivé, ouvrir les **Outils de démo**, qui regroupent les preuves et résultats simulés.
+6. Retrouver la mission dans l’historique et constater son effet sur les revenus. Les montants rejetés sont exclus des revenus approuvés.
+7. Recharger la page pour vérifier la reprise du parcours et des preuves. Utiliser « Réinitialiser la démo » pour retrouver les données initiales avec de nouveaux délais.
 
 Le scan, le déverrouillage et le contrôle au dépôt sont simulés. Une photo ou une position simulée est explicitement marquée comme telle. Le scénario de validation permet de démontrer l’état métier ; il ne constitue pas une vérification automatique réelle du véhicule.
 
@@ -41,21 +43,25 @@ La direction visuelle reprend les captures Pony fournies et le [kit média offic
 
 DM Sans est incluse localement sous licence SIL OFL 1.1 comme approximation libre de la typographie ; elle n’est pas présentée comme la police exacte de l’application Pony. Les sources, licences et choix d’adaptation figurent dans [les références de marque](docs/BRAND_REFERENCES.md). Les captures fixes ne permettent pas de déterminer les animations d’origine ; les transitions du prototype sont des choix de réalisation et respectent la préférence de réduction des mouvements.
 
+La passe de simplification terrain adapte [Unslop, de Damir Sokolovsky](https://github.com/heydamir/unslop), sous [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), au design Pony existant. L’audit mesuré et les choix de parcours sont conservés dans [la revue de l’usage terrain](docs/FIELD_UX_REVIEW.md).
+
 ## Organisation
 
-| Emplacement                   | Rôle                                                          |
-| ----------------------------- | ------------------------------------------------------------- |
-| `src/App.jsx`                 | Navigation, carte, historique et revenus                      |
-| `src/components/`             | Parcours d’exécution et formulaire de dépôt                   |
-| `src/data/seed.js`            | Missions fictives, historique, tarifs et délais               |
-| `src/domain/missions.js`      | Règles de transition, soumission et revue                     |
-| `src/domain/storage.js`       | Sauvegarde locale versionnée et reprise après erreur          |
-| `src/domain/date.js`          | Calendrier et affichage cohérents dans le fuseau Europe/Paris |
-| `src/domain/missions.test.js` | Vérifications des règles et de la persistance                 |
-| `docs/AI_DEVELOPMENT_LOG.md`  | Journal éditorial du développement assisté par IA             |
-| `docs/discovery.md`           | Registre de discovery, sans conclusions inventées             |
-| `docs/DEMO_RULES.md`          | Règles contractuelles et hypothèses de prototype              |
-| `docs/BRAND_REFERENCES.md`    | Sources de marque, palette, typographie et limites de reproduction |
+| Emplacement                   | Rôle                                                                  |
+| ----------------------------- | --------------------------------------------------------------------- |
+| `src/App.jsx`                 | Navigation, carte, historique et revenus                              |
+| `src/components/`             | Parcours d’exécution et formulaire de dépôt                           |
+| `src/data/seed.js`            | Missions fictives, historique, tarifs et délais                       |
+| `src/domain/missions.js`      | Règles de transition, soumission et revue                             |
+| `src/domain/storage.js`       | Sauvegarde locale versionnée et reprise après erreur                  |
+| `src/domain/date.js`          | Calendrier et affichage cohérents dans le fuseau Europe/Paris         |
+| `src/domain/map.js`           | Projection et regroupement des marqueurs selon leur distance affichée |
+| `src/domain/missions.test.js` | Vérifications des règles et de la persistance                         |
+| `docs/AI_DEVELOPMENT_LOG.md`  | Journal éditorial du développement assisté par IA                     |
+| `docs/discovery.md`           | Registre de discovery, sans conclusions inventées                     |
+| `docs/DEMO_RULES.md`          | Règles contractuelles et hypothèses de prototype                      |
+| `docs/BRAND_REFERENCES.md`    | Sources de marque, palette, typographie et limites de reproduction    |
+| `docs/FIELD_UX_REVIEW.md`     | Audit mesuré, simplification terrain et vérifications de cette passe  |
 
 ## Persistance et limites
 
@@ -64,6 +70,8 @@ La clé `pony-agent-demo:v1` de `localStorage` conserve les missions, le parcour
 Les dates et heures affichées utilisent le fuseau Europe/Paris. Les données initiales se créent relativement à l’heure de lancement pour conserver une démonstration utilisable ; leurs délais continuent ensuite de s’écouler. Réinitialiser la démo renouvelle ce point de départ.
 
 La carte du prototype et les missions sont fictives. Aucun itinéraire de navigation réel, traitement serveur de photo, partage d’équipe, paiement ou contrôle anti-fraude n’est implémenté.
+
+L’ouverture du sélecteur de fichier, l’ajout d’une image et les secours simulés ont été vérifiés dans le navigateur. La prise de vue avec une caméra de smartphone et une capture GPS réelle réussie restent à vérifier sur appareil.
 
 ## Partie 2
 

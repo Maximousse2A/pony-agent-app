@@ -231,3 +231,144 @@ test("corrupted evidence cannot crash a restored history or bypass deposit requi
     assert.ok(isValidState(restored));
   }
 });
+
+test("compound scan matches the vehicle and cannot skip explicit work confirmation", () => {
+  let state = reducer(createInitialState(now), {
+    type: "SELECT",
+    missionId: "M-1042",
+  });
+  assert.equal(
+    reducer(state, { type: "SCAN_AND_UNLOCK", vehicleId: "PN-WRONG", now }),
+    state,
+  );
+  assert.equal(
+    reducer(state, { type: "CONFIRM_WORK", confirmed: true }),
+    state,
+  );
+  state = reducer(state, {
+    type: "SCAN_AND_UNLOCK",
+    vehicleId: " pn-2841 ",
+    now,
+  });
+  assert.equal(state.activeMission.stage, "work");
+  assert.equal(state.activeMission.scanned, true);
+  assert.equal(state.activeMission.unlocked, true);
+  assert.deepEqual(state.activeMission.completedSteps, []);
+  assert.equal(state.activeMission.startedAt, new Date(now).toISOString());
+  assert.equal(reducer(state, { type: "CONFIRM_WORK" }), state);
+  assert.equal(
+    reducer(state, { type: "CONFIRM_WORK", confirmed: false }),
+    state,
+  );
+  assert.equal(reducer(state, { type: "SUBMIT", scenario: "approved" }), state);
+  assert.equal(
+    reducer(state, { type: "SCAN_AND_UNLOCK", vehicleId: "PN-2841", now }),
+    state,
+  );
+});
+
+test("condensed flow completes all four mission types only with photo and GPS", () => {
+  for (const type of Object.keys(MISSION_TYPES)) {
+    let state = createInitialState(now);
+    const mission = state.missions.find((entry) => entry.type === type);
+    state = reducer(state, { type: "SELECT", missionId: mission.id });
+    state = reducer(state, {
+      type: "SCAN_AND_UNLOCK",
+      vehicleId: mission.vehicleId,
+      now,
+    });
+    state = reducer(state, { type: "CONFIRM_WORK", confirmed: true, now });
+    assert.equal(state.activeMission.stage, "deposit");
+    assert.deepEqual(
+      state.activeMission.completedSteps,
+      MISSION_TYPES[type].steps.map((_, index) => index),
+    );
+    assert.equal(
+      reducer(state, { type: "SUBMIT", scenario: "approved" }),
+      state,
+    );
+    state = reducer(state, {
+      type: "SET_PHOTO",
+      photo: {
+        dataUrl: "data:image/jpeg,test",
+        name: "Dépôt",
+        simulated: true,
+      },
+    });
+    assert.equal(
+      reducer(state, { type: "SUBMIT", scenario: "approved" }),
+      state,
+    );
+    state = reducer(state, {
+      type: "SET_POSITION",
+      position: {
+        lat: mission.destination.lat,
+        lng: mission.destination.lng,
+        simulated: true,
+        capturedAt: new Date(now).toISOString(),
+      },
+    });
+    state = reducer(state, {
+      type: "SUBMIT",
+      scenario: "approved",
+      completedAt: new Date(now).toISOString(),
+    });
+    assert.equal(state.history[0].type, type);
+    assert.equal(state.history[0].workConfirmedAt, new Date(now).toISOString());
+    assert.equal(state.activeMission, null);
+    assert.ok(isValidState(state));
+  }
+});
+
+test("legacy partial scan resumes with one explicit confirmation and preserves proof", () => {
+  let legacy = reducer(createInitialState(now), {
+    type: "SELECT",
+    missionId: "M-1042",
+  });
+  for (const action of [
+    { type: "SET_STAGE", stage: "scan", now },
+    { type: "SCAN", vehicleId: "PN-2841" },
+    { type: "UNLOCK" },
+    { type: "TOGGLE_STEP", index: 0 },
+  ])
+    legacy = reducer(legacy, action);
+  let state = loadState({ getItem: () => JSON.stringify(legacy) });
+  assert.equal(state.activeMission.stage, "scan");
+  assert.deepEqual(state.activeMission.completedSteps, [0]);
+  state = reducer(state, { type: "CONFIRM_WORK", confirmed: true, now });
+  assert.equal(state.activeMission.stage, "deposit");
+  const proof = readyForDeposit().activeMission;
+  state = reducer(state, { type: "SET_PHOTO", photo: proof.photo });
+  state = reducer(state, { type: "SET_POSITION", position: proof.position });
+  const restored = loadState({ getItem: () => JSON.stringify(state) });
+  assert.deepEqual(restored, state);
+  assert.equal(
+    reducer(restored, { type: "CONFIRM_WORK", confirmed: true, now }),
+    restored,
+  );
+  assert.equal(
+    reducer(restored, { type: "SCAN_AND_UNLOCK", vehicleId: "PN-2841", now }),
+    restored,
+  );
+  let back = reducer(restored, { type: "SET_STAGE", stage: "work" });
+  back = reducer(back, { type: "CONFIRM_WORK", confirmed: true, now });
+  assert.deepEqual(back.activeMission.photo, proof.photo);
+  assert.deepEqual(back.activeMission.position, proof.position);
+});
+
+test("a legacy detail with prior scan keeps its evidence when reopening work", () => {
+  const state = readyForDeposit();
+  const detail = reducer(state, { type: "SET_STAGE", stage: "detail" });
+  const resumed = reducer(detail, {
+    type: "SCAN_AND_UNLOCK",
+    vehicleId: "PN-2841",
+    now: now + 1000,
+  });
+  assert.equal(resumed.activeMission.stage, "work");
+  assert.equal(resumed.activeMission.startedAt, state.activeMission.startedAt);
+  assert.deepEqual(resumed.activeMission.photo, state.activeMission.photo);
+  assert.deepEqual(
+    resumed.activeMission.position,
+    state.activeMission.position,
+  );
+});

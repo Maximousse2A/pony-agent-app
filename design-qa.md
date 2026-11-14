@@ -1,53 +1,49 @@
-# Design QA · Adaptation de la DA Pony
+# Design QA · Usage terrain
 
-Date : 12 novembre 2026. Périmètre : transposition de la direction artistique des captures grand public vers l’application agents existante. Il ne s’agit pas de reproduire les fonctionnalités, les textes, les métriques ou la géographie de l’application clients.
+Audit commencé le 13 novembre, validation locale terminée le **14 novembre 2026**. Passe appliquant [Unslop de Damir Sokolovsky](https://github.com/heydamir/unslop), CC BY 4.0, à la demande de simplification terrain. La précédente adaptation Pony est archivée dans [la QA de marque](docs/DESIGN_QA_BRAND_2026-11-12.md).
 
-## Référence et preuves
+## Référence, contexte et preuves
 
-- Références privées : six JPEG 281 × 610 fournis dans la conversation. Référence carte : `/var/folders/0j/s1tdgw2x56gb111x576zg02m0000gn/T/codex-clipboard-b40d869e-02af-43ac-b6cf-0d1da8415ac3.jpg`. Référence compte : `codex-clipboard-705b9ded-3adc-4138-ba15-d4339c23200c.jpg` dans le même dossier. Les autres vues concernent le parrainage, les récompenses et les prix ; leur style sert de référence, sans ajout de ces fonctions.
-- Implémentation navigateur : `http://127.0.0.1:5173/pony-agent-app/`, code React/Vite existant.
-- Preuves locales privées, hors dépôt : `../../work/pony-brand-qa/`. Vues finales : `map-mobile-v2.jpg`, `earnings-mobile-v2.jpg`, `mission-mobile-v2.jpg`, `deposit-mobile-v2.jpg`, `mission-320-fixed.jpg`, `map-desktop-v2.jpg`.
-- Comparaison commune : `comparison-v1.jpg` puis `comparison-v2.jpg`, chaque planche contenant référence et implémentation côte à côte. Détails des actions : `focus-v1.jpg` puis `focus-v2.jpg`, avec la feuille blanche et les boutons de référence face aux actions du prototype. Ces fichiers ont été ouverts et comparés visuellement.
-- Normalisation : références 281 × 610 pixels ; captures mobiles 390 × 844 CSS px/pixels, ramenées à 281 × 608 pour les planches, sans étirement. Les 2 pixels de hauteur restants et la barre système des références ne sont pas traités comme des écarts de DA. Le prototype ne dessine pas une fausse barre système.
-- Vérification complémentaire : téléphone étroit 320 × 740 et ordinateur 1440 × 1000 ; les dimensions CSS et les largeurs de défilement ont été lues dans le navigateur.
+- Produit existant React/Vite, Partie 1 uniquement. Identité Pony, logo officiel et DM Sans conservés ; les surfaces et textes passent à une gamme neutre, avec le bleu Pony pour l’action et la sélection.
+- Captures fraîches avant modification : `../../work/field-ux/before/`, cinq vues à 390 × 844 px, de la liste au dépôt. Aucun accès à une app Pony réelle ni donnée d’entretien inventée.
+- Captures après : `../../work/field-ux/after/`, développement puis build statique local servi sur le port 4173. Les captures de production finales ont été enregistrées dans les livrables locaux, hors dépôt public.
+- Comparaisons exactes ouvertes et inspectées : `../../work/field-ux/comparison-1.jpg`, `comparison-2.jpg`, `comparison-3.jpg`. Chaque paire conserve 390 × 844 px sans étirement ; les missions et dates fictives peuvent différer entre les scénarios. Les vérifications visuelles concernent la structure, pas une égalité des données.
+- Ordinateur 1440 × 1000 et téléphone étroit 320 × 740 aussi inspectés. Cette passe compte une version candidate et une version corrigée après le relevé de référence.
 
-## Comparaison des surfaces requises
+## Constats et corrections
 
-| Surface | Observation et résultat |
-| --- | --- |
-| Typographie | Titres géométriques très gras, corps léger et chiffres d’accent rapprochés des références. Le site officiel déclare Matter, mais la famille de l’app mobile n’est pas établie. DM Sans variable, libre et fournie localement, est une approximation explicitement documentée. Chargement de la police confirmé dans le navigateur. |
-| Espacement et structure | Panneaux blancs à angles de 28 px, boutons en pilule, séparateurs fins et peu d’ombres. Le panneau de mission monte depuis le bas sur téléphone ; la version ordinateur conserve un panneau latéral. Les titres et la liste de missions restent adaptés au contexte agents. |
-| Couleurs | Palette officielle du kit Pony : violet `#321E64`, bleu `#321ED3`, cyan `#00FFFF`, corail `#FE6D80`, blanc. En-têtes violets, chiffres cyan, actions bleues, carte lavande. Les petites légendes sur blanc gardent une teinte violette plus contrastée que le cyan/corail pur. |
-| Actifs et qualité | Vrais mots-symboles SVG du kit officiel ; aucune approximation typographique du logo. Icônes d’interface existantes conservées et harmonisées. Le plan géographique et la preuve illustrée restent les éléments fonctionnels fictifs déjà présents, recolorés ; les illustrations de jeu client ne sont pas ajoutées au produit agents. |
-| Contenu et copie | Parcours, tarifs, motifs, dates, revenus et identifiants de Partie 1 conservés. Aucun texte de parrainage, jeu, résultat d’entretien ou nouvelle fonctionnalité de Partie 2 importé depuis les références. |
+| Constat initial                                                                                        | Correction et résultat observé                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Aucun véhicule complet visible avant la navigation basse ; première carte à y = 795,47                 | En-tête direct, statistiques et slogans retirés. Dans le build final : première carte à y = 555,30–710,20 ; navigation à y = 772. Une mission complète est visible sans défiler.     |
+| Actions pour commencer et envoyer hors écran, à y = 885,98 et 1445,98                                  | Panneau avec un seul contenu défilant et action basse indépendante. À 390 × 844 : confirmation/photo y = 756,60–808,60 ; envoi y = 780–832. Hauteur de chaque action : 52 px.        |
+| Quatre écrans, trois cases séparées et nombreuses validations                                          | Deux écrans : intervention et preuve. Scan/ouverture regroupés ; trois points métier toujours affichés, confirmés explicitement avec le bouton qui ouvre la photo.                   |
+| Batterie et destination à chercher dans différents écrans                                              | Liste : identifiant, type, montant, lieu de départ, destination, batterie visuelle et délai. Intervention : mêmes repères, avec création et motif dépliables.                        |
+| Un clic visant PN-2841 ouvrait PN-2916 à cause du recouvrement des repères                             | Groupes calculés en pixels ; choix exact PN-2841 vérifié dans la liste du groupe. Tests de séparation, conservation et stabilité des missions.                                       |
+| Première version candidate : contrôles du plan devant un véhicule                                      | Bandeau propre aux contrôles et marge intérieure. Repères de 48 px, sans contrôle devant eux à zoom initial. Le zoom peut sortir des positions du cadre ; la liste reste exhaustive. |
+| Première version candidate : retour du focus du groupe tenté pendant que le repère était encore inerte | Retour après rendu. Ouverture, focus sur un véhicule, Échap et retour au groupe vérifiés dans la version corrigée.                                                                   |
+| Sélection d’un autre véhicule pendant une intervention ambiguë                                         | Message explicite indiquant le véhicule déjà commencé ; choix de terminer ou libérer dans Options. Progression conservée.                                                            |
+| Confirmation de libération potentiellement hors du défilement                                          | Défilement et focus sur « Garder la mission » ; contrôle visible et bouton principal désactivé tant que la confirmation est ouverte.                                                 |
 
-## Historique des constats et corrections
+## Parcours et vérifications
 
-1. Premier contrôle visuel, 390 px : la grande graisse et l’espace du badge pouvaient couper `PN-2841` entre le préfixe et les chiffres. **[P2] Corrigé** en gardant le groupe d’identifiant insécable. La capture `mission-mobile-v2.jpg` confirme l’identifiant complet.
-2. Contrôle à 320 px : le badge de montant dépassait à droite d’environ 5 px ; largeur de défilement du panneau 325 pour un écran de 320. **[P2] Corrigé** en supprimant l’icône redondante du titre sur les écrans très étroits et en permettant au bloc de titre de se réduire. Après correction : document 320 px, panneau 320 px ; preuve `mission-320-fixed.jpg`.
-3. Premier contrôle de palette : certaines variantes de repères de carte étaient encore des teintes de l’ancienne démo. **[P2] Corrigé** avec les couleurs du kit ; pictogrammes violets sur repères cyan/corail pour rester lisibles. Preuves post-correction : `map-mobile-v2.jpg`, `map-desktop-v2.jpg` et planche `comparison-v2.jpg`.
+- Scan erroné refusé ; code correct avec espaces/minuscules normalisé et accepté. Scan et déverrouillage restent explicitement simulés.
+- Ancienne mission de recharge déverrouillée reprise ; confirmation, ouverture du sélecteur de fichier depuis le même clic, fichier image importé et préparé, GPS de démo ; photo et position conservées après rechargement.
+- Dépôt en attente, revue simulée approuvée et montant de 6 € retrouvé dans les revenus.
+- Batterie : confirmation des trois points, photo et GPS de démo, rejet avec motif de photo floue, historique à 0 €.
+- Atelier : parcours sur 320 px jusqu’à approbation à 6 €. Dans le build de production : batterie et relocalisation jusqu’au dépôt en attente, preuve conservée après rechargement.
+- Parcours complet de démo final : **7 appuis dans l’application** depuis la liste (sélection, scanner/ouvrir, terminer/photo, outils de démo, photo de démo, GPS de démo, envoyer). Le relevé initial en comptait 12. Fenêtres système, défilement, tests d’erreur et réinitialisation exclus ; ce n’est pas une mesure de temps terrain. Passer par un groupe de carte ajoute un choix de véhicule.
+- Aucun débordement horizontal observé du document à 320, 390 et 1440 px ; panneau d’intervention et formulaire de preuve à 320 et 390 px. Actions basses visibles dans ces deux dimensions mobiles.
+- Cibles principales et repères de 48 px ou plus ; action primaire de 52 px. Informations chiffrées alignées, labels et statuts présents ; la couleur ne porte pas seule l’information.
+- Écrans de production locale finaux : aucun avertissement ni erreur console observés. Une erreur d’icône pendant le développement a été corrigée avant ces contrôles et avant le build final.
+- Blanc sur bleu Pony : contraste environ 9,28:1. Texte principal #171717, secondaire #525252, légendes #737373 sur blanc. Focus clavier visible. Règle `prefers-reduced-motion` conservée et inspectée dans le CSS ; préférence système non changée pour ce contrôle.
+- 19 tests de domaine réussis ; build Node 24.22.3 / Vite 7.3.8 réussi : 89 modules, 769 ms, sorties `index-kEVaL-H9.js` et `index-CYIoeff2.css`.
 
-Une revue de code a aussi supprimé des réinitialisations CSS non stratifiées qui écrasaient les couleurs, tailles et marges des classes utilitaires. Le navigateur a confirmé pour l’action principale : texte blanc, fond `rgb(50, 30, 211)`, forme pilule. Ce correctif d’intégration est distinct des itérations visuelles ci-dessus.
+## Limites acceptées
 
-## Interactions et accessibilité vérifiées
+Pas de test avec un agent dans la rue, soleil, gants ou réseau mobile. L’ouverture du sélecteur et l’import ont été vérifiés ; une prise de vue réelle sur smartphone et une capture GPS réelle réussie ne l’ont pas été. Le navigateur a refusé le GPS ; le secours clairement simulé a été testé. L’API de test n’a pas permis d’annuler le sélecteur natif avec une liste vide ; la présence du bouton de reprise photo sans fichier a été constatée, sans déclarer une annulation native testée.
 
-- Navigation carte, historique, revenus ; états sélectionnés et actions en pilule.
-- Identifiant QR incorrect refusé, puis scan et déverrouillage simulés corrects.
-- Checklist ; cases toujours cochées après rechargement de la page.
-- Photo de démo, demande GPS automatique et position de secours explicitement simulée.
-- Dépôt rejeté avec motif, preuve et montant payé à 0 € dans l’historique.
-- Reset de la démo rétablit dix missions disponibles.
-- Aucun débordement horizontal de page à 390 et 1440 px ; panneau de mission vérifié à 320 px après correction.
-- Aucun avertissement ou erreur de console au contrôle final local.
-- Contrastes des tokens contrôlés : blanc/bleu environ 9,28:1 ; violet/cyan environ 11,13:1 ; texte corail foncé/blanc environ 6,28:1. Focus corail visible, libellés et statuts conservés. La couleur ne remplace pas le texte des états.
-- Entrées de panneaux 280–300 ms, changements de contenu 180 ms et retour d’appui discret. Les règles `prefers-reduced-motion` désactivent ces animations. Les captures fixes ne prouvent pas les animations de l’application source : ces durées restent des choix d’adaptation.
+Carte schématique et positions fictives. Scan, ouverture et validation du dépôt restent simulés. La fonctionnalité de Partie 2 demeure non construite ; le regroupement corrige les cibles de la carte obligatoire, sans optimisation de tournée ou conclusions d’entretien.
 
-## Différences acceptées et suivi
-
-- Les contenus, proportions générales et contrôles supplémentaires servent les missions terrain : la demande porte sur la DA, pas sur une copie écran par écran de l’application clients.
-- La carte demeure schématique et fictive. Plusieurs missions proches peuvent se superposer ; leur liste reste l’accès complémentaire existant. Aucune fonctionnalité de regroupement ou d’optimisation n’est introduite avant discovery.
-- **[P3]** La police exacte embarquée dans l’app mobile et ses animations nécessiteraient des actifs autorisés et une vidéo ou un accès direct. DM Sans et les transitions proposées sont des approximations assumées.
-
-Aucun constat P0/P1/P2 ne reste ouvert après le second contrôle. Les limites P3 ci-dessus ne bloquent pas cette adaptation.
+Aucun constat bloquant de cette passe ne reste ouvert après correction et contrôle local. La publication doit être vérifiée séparément et consignée dans [l’état de livraison](docs/RELEASE_STATUS.md).
 
 final result: passed

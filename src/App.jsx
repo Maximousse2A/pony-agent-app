@@ -4,7 +4,6 @@ import {
   List,
   Wallet,
   History,
-  ArrowUpRight,
   ArrowRight,
   ChevronRight,
   RotateCcw,
@@ -12,7 +11,6 @@ import {
   CircleHelp,
   Clock3,
   MapPin,
-  Bike,
   SlidersHorizontal,
   CheckCircle2,
   FileDown,
@@ -23,13 +21,12 @@ import {
   currency as money,
 } from "./domain/missions.js";
 import { loadState, saveState } from "./domain/storage.js";
-import { isParisToday as isToday } from "./domain/date.js";
+
 import MissionFlow from "./components/MissionFlow.jsx";
 import HistoryPage from "./components/HistoryPage.jsx";
 import EarningsPage from "./components/EarningsPage.jsx";
 import MapView, { typeIcons } from "./components/MapView.jsx";
 
-const total = (rows) => rows.reduce((sum, row) => sum + row.pay, 0);
 function timeLeft(value, now) {
   const mins = Math.ceil((new Date(value) - now) / 60000);
   if (mins <= 0) return "Délai dépassé";
@@ -43,12 +40,12 @@ function Brand() {
     <div className="brand">
       <img
         className="brand-logo"
-        src={`${import.meta.env.BASE_URL}brand/pony-white.svg`}
+        src={`${import.meta.env.BASE_URL}brand/pony-purple.svg`}
         alt="pony"
         width="124"
         height="43"
       />
-      <span className="brand-caption">TERRAIN</span>
+      <span className="brand-caption">terrain</span>
     </div>
   );
 }
@@ -61,28 +58,38 @@ function MissionCard({ mission, now, onSelect, active }) {
       onClick={() => onSelect(mission)}
     >
       <div className="mission-card-top">
-        <span className={`mission-icon ${mission.type}`}>
-          <Icon size={20} />
-        </span>
         <span className="mission-card-title">
-          <strong>{MISSION_TYPES[mission.type].label}</strong>
+          <strong>{mission.vehicleId}</strong>
           <span>
-            {mission.vehicleId} <span>·</span> {mission.vehicleKind}
+            <Icon size={16} />
+            {MISSION_TYPES[mission.type].shortLabel ||
+              MISSION_TYPES[mission.type].label}
           </span>
         </span>
-        <span className="mission-pay">{money(mission.pay)}</span>
+        <span className="mission-pay">
+          {money(mission.pay)}
+          <ChevronRight size={18} />
+        </span>
       </div>
       <div className="mission-location">
-        <MapPin size={14} />
+        <MapPin size={16} />
         <span>{mission.location}</span>
-        <ChevronRight size={16} />
+      </div>
+      <div className="mission-destination">
+        <ArrowRight size={16} />
+        <span>{mission.destination.label}</span>
       </div>
       <div className="mission-card-bottom">
+        <span className={`battery-meter ${mission.battery <= 20 ? "low" : ""}`}>
+          <span className="battery-outline">
+            <span style={{ width: `${mission.battery}%` }} />
+          </span>
+          {mission.battery} %
+        </span>
         <span className={urgent ? "deadline urgent" : "deadline"}>
-          <Clock3 size={12} />
+          <Clock3 size={14} />
           {timeLeft(mission.deadlineAt, now)}
         </span>
-        <span>{mission.zone === "centre" ? "Centre-ville" : "Périphérie"}</span>
         {active && <span className="active-badge">En cours</span>}
       </div>
     </button>
@@ -100,6 +107,7 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [storageFailed, setStorageFailed] = useState(false);
+  const [flowNotice, setFlowNotice] = useState("");
   const [showFlow, setShowFlow] = useState(Boolean(state.activeMission));
   useEffect(() => {
     setStorageFailed(!saveState(state));
@@ -152,13 +160,15 @@ export default function App() {
   const active = state.missions.find(
     (m) => m.id === state.activeMission?.missionId,
   );
-  const todayRows = state.history.filter((m) => isToday(m.completedAt));
-  const availableTotal = total(state.missions);
   const select = (mission) => {
+    setFlowNotice("");
     if (active && active.id !== mission.id) {
       if (state.activeMission.stage === "detail") {
         dispatch({ type: "CANCEL_ACTIVE" });
       } else {
+        setFlowNotice(
+          `La mission ${active.vehicleId} est déjà commencée. Terminez-la ou libérez-la dans les options avant de changer de véhicule.`,
+        );
         setShowFlow(true);
         return;
       }
@@ -196,9 +206,11 @@ export default function App() {
   ];
   return (
     <div className="app-shell">
-      <aside className="desktop-sidebar">
+      <aside
+        className="desktop-sidebar"
+        inert={showFlow || showHelp || showReset}
+      >
         <Brand />
-        <div className="workspace-label">VOTRE ESPACE AGENT</div>
         <nav aria-label="Navigation principale">
           {nav.map(([key, Icon, label]) => (
             <button
@@ -214,19 +226,8 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="shift-card">
-            <span className="live-dot" />
-            <strong>Prêt pour le terrain.</strong>
-            <p>
-              Une ville qui bouge,
-              <br />
-              grâce à vous.
-            </p>
-            <Bike size={50} strokeWidth={1.2} />
-          </div>
           <button className="sidebar-link" onClick={() => setShowHelp(true)}>
             <CircleHelp size={17} /> Guide de démonstration
-            <ArrowUpRight size={14} />
           </button>
           <button className="sidebar-link" onClick={() => setShowReset(true)}>
             <RotateCcw size={16} /> Réinitialiser la démo
@@ -240,34 +241,21 @@ export default function App() {
           </div>
         </div>
       </aside>
-      <div className="main-shell">
+      <div className="main-shell" inert={showFlow || showHelp || showReset}>
         <header className="app-header">
           <div className="mobile-brand">
             <Brand />
           </div>
-          <div className="desktop-breadcrumb">
-            Espace agent <ChevronRight size={14} />{" "}
-            <strong>
-              {page === "missions"
-                ? "Missions disponibles"
-                : page === "history"
-                  ? "Historique"
-                  : "Mes revenus"}
-            </strong>
-          </div>
+          <div className="desktop-breadcrumb">Espace agent · Angers</div>
           <div className="header-right">
-            <span className="demo-badge">DÉMO</span>
-            <span className="service-pill">
-              <span className="live-dot" /> En service
-            </span>
+            <span className="demo-badge">Démo</span>
             <button
-              className="mobile-help icon-button"
+              className="icon-button"
               aria-label="Guide de démonstration"
               onClick={() => setShowHelp(true)}
             >
-              <CircleHelp size={21} />
+              <CircleHelp size={20} />
             </button>
-            <span className="header-avatar avatar">AM</span>
           </div>
         </header>
         {storageFailed && (
@@ -282,47 +270,18 @@ export default function App() {
             <div className="missions-page">
               <div className="page-heading">
                 <div>
-                  <div className="eyebrow">SUR LE TERRAIN, À ANGERS</div>
                   <h1>
-                    On remet la ville en mouvement
-                    <span className="heading-period">.</span>
+                    Missions <span>· Angers</span>
                   </h1>
-                  <p>Votre prochaine mission est au coin de la rue.</p>
+                  <p>{state.missions.length} disponibles</p>
                 </div>
-                <div className="date-label">
-                  <span className="live-dot" />
-                  {new Date(now).toLocaleDateString("fr-FR", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
+                <span className="date-label">
+                  {new Date(now).toLocaleTimeString("fr-FR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
                     timeZone: "Europe/Paris",
                   })}
-                </div>
-              </div>
-              <div className="mission-stats">
-                <div>
-                  <span className="stat-icon">
-                    <MapPin size={17} />
-                  </span>
-                  <strong>{state.missions.length}</strong>
-                  <span>missions disponibles</span>
-                </div>
-                <div>
-                  <span className="stat-icon">
-                    <Wallet size={17} />
-                  </span>
-                  <strong>{money(availableTotal)}</strong>
-                  <span>à réaliser</span>
-                </div>
-                <div>
-                  <span className="stat-icon">
-                    <CheckCircle2 size={17} />
-                  </span>
-                  <strong>
-                    {todayRows.filter((m) => m.status === "approved").length}
-                  </strong>
-                  <span>approuvées aujourd’hui</span>
-                </div>
+                </span>
               </div>
               {active && (
                 <button
@@ -336,7 +295,7 @@ export default function App() {
                     })()}
                   </span>
                   <span>
-                    <strong>Une mission vous attend</strong>
+                    <strong>Mission en cours</strong>
                     <span>
                       {active.vehicleId} · Reprendre votre intervention
                     </span>
@@ -407,7 +366,7 @@ export default function App() {
                   >
                     <div className="list-panel-header">
                       <h2>
-                        À vous de jouer <span>{visible.length}</span>
+                        Véhicules <span>{visible.length}</span>
                       </h2>
                       <label className="sort-control">
                         <SlidersHorizontal size={14} />
@@ -455,18 +414,6 @@ export default function App() {
                   <span>Données fictives · aucune opération réelle</span>
                 </div>
               </div>
-              <div className="field-note">
-                <span className="note-icon">
-                  <Bike size={21} />
-                </span>
-                <p>
-                  <strong>Un véhicule de plus, une ville qui respire.</strong>
-                  <br />
-                  Sélectionnez une mission pour découvrir les étapes et le lieu
-                  de dépôt.
-                </p>
-                <ArrowUpRight size={22} />
-              </div>
             </div>
           ) : page === "history" ? (
             <HistoryPage
@@ -489,7 +436,11 @@ export default function App() {
           </button>
         </footer>
       </div>
-      <nav className="mobile-nav" aria-label="Navigation mobile">
+      <nav
+        className="mobile-nav"
+        aria-label="Navigation mobile"
+        inert={showFlow || showHelp || showReset}
+      >
         {nav.map(([key, Icon, label]) => (
           <button
             key={key}
@@ -508,9 +459,13 @@ export default function App() {
             <MissionFlow
               key={active.id}
               mission={active}
+              notice={flowNotice}
               activeMission={state.activeMission}
               dispatch={dispatch}
-              onClose={() => setShowFlow(false)}
+              onClose={() => {
+                setShowFlow(false);
+                setFlowNotice("");
+              }}
               onFinished={() => {
                 setShowFlow(false);
                 setPage("history");
@@ -541,8 +496,8 @@ export default function App() {
             >
               <X size={21} />
             </button>
-            <div className="eyebrow">BIENVENUE SUR LE TERRAIN</div>
-            <h2 id="guide-title">Une démo, de bout en bout.</h2>
+
+            <h2 id="guide-title">Guide de la démo</h2>
             <p>
               Explorez les missions fictives à Angers, puis réalisez une
               intervention en quelques étapes.
@@ -587,7 +542,7 @@ export default function App() {
                 className="primary-button"
                 onClick={() => setShowHelp(false)}
               >
-                C’est parti <ArrowRight size={17} />
+                Fermer le guide
               </button>
               <button
                 className="secondary-button"
@@ -597,7 +552,7 @@ export default function App() {
                 }}
               >
                 <RotateCcw size={16} />
-                Reset demo
+                Réinitialiser
               </button>
             </div>
           </section>
@@ -611,7 +566,6 @@ export default function App() {
             aria-modal="true"
             aria-labelledby="reset-title"
           >
-            <div className="eyebrow">REPARTIR DE ZÉRO</div>
             <h2 id="reset-title">Réinitialiser la démo ?</h2>
             <p>
               Les missions, les preuves et les revenus de cet appareil seront

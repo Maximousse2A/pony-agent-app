@@ -169,6 +169,36 @@ export function reducer(state, action) {
     activeMission: { ...active, ...patch },
   });
   switch (action.type) {
+    case "SCAN_AND_UNLOCK": {
+      if (!["detail", "scan"].includes(active.stage)) return state;
+      const vehicleId = String(action.vehicleId || "")
+        .trim()
+        .toUpperCase();
+      if (vehicleId !== mission.vehicleId.trim().toUpperCase()) return state;
+      return update({
+        scanned: true,
+        unlocked: true,
+        stage: "work",
+        startedAt:
+          active.startedAt || new Date(action.now ?? Date.now()).toISOString(),
+      });
+    }
+    case "CONFIRM_WORK": {
+      if (
+        action.confirmed !== true ||
+        !["work", "scan"].includes(active.stage) ||
+        !active.scanned ||
+        !active.unlocked
+      )
+        return state;
+      return update({
+        completedSteps: MISSION_TYPES[mission.type].steps.map(
+          (_, index) => index,
+        ),
+        stage: "deposit",
+        workConfirmedAt: new Date(action.now ?? Date.now()).toISOString(),
+      });
+    }
     case "SET_STAGE": {
       if (!["detail", "scan", "work", "deposit"].includes(action.stage))
         return state;
@@ -242,6 +272,7 @@ export function reducer(state, action) {
         completedAt,
         reviewedAt: action.scenario === "pending" ? null : completedAt,
         startedAt: active.startedAt || completedAt,
+        workConfirmedAt: active.workConfirmedAt || null,
         photo: active.photo,
         position: active.position,
         completedSteps: active.completedSteps,

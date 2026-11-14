@@ -17,8 +17,7 @@ export default function HistoryPage({ history, dispatch, filter, setFilter }) {
     <section className="content-page history-page">
       <div className="page-heading pony-page-heading">
         <div>
-          <div className="eyebrow">CHAQUE INTERVENTION COMPTE</div>
-          <h1 className="font-black">Vos missions, en détail.</h1>
+          <h1>Historique</h1>
           <p>Retrouvez vos dépôts et leur statut de validation.</p>
         </div>
         <div className="page-heading-icon">
