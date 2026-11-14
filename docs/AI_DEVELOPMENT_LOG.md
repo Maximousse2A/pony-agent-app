@@ -143,3 +143,11 @@ Références consultées : [Tailwind avec Vite](https://tailwindcss.com/docs/ins
 - Trois comparaisons avant/après des fichiers enregistrés ont été ouvertes et inspectées. La candidate a été corrigée pour réserver un bandeau aux contrôles de carte, remettre le focus au groupe après Échap et expliquer la reprise d’une mission déjà commencée.
 - 19 tests de domaine réussis. Build final : 89 modules, 769 ms, `index-kEVaL-H9.js`, `index-CYIoeff2.css`. Aucun avertissement ni erreur dans la console de production locale finale.
 - QA locale passée, avec limites d’appareil, de caméra, GPS et terrain précisées dans `design-qa.md`. Publication de cette passe à confirmer séparément dans l’état de livraison.
+
+### Publication et contrôle public de la refonte terrain
+
+- Commit applicatif `33d8e29aaa2e1cafdfd65324b1d2ba1b5f981445` poussé ; [GitHub Actions 43569675110](https://github.com/Maximousse2A/pony-agent-app/actions/runs/43569675110) terminé avec succès, installation, tests, compilation et déploiement inclus.
+- Déploiement Pages `7784171652` associé à ce même SHA. HTML, favicon, JavaScript, CSS, police et deux logos répondent HTTP 200 et correspondent octet pour octet au build local.
+- Contrôle public à 390 × 844 : nouveau code et CSS chargés, ancien parcours PN-3017 repris dans le nouveau design, document et panneau sans débordement, action basse visible. Navigation vers la carte puis les revenus vérifiée ; aucune erreur ni avertissement console.
+- Aucun reset public effectué. Les données et la mission sélectionnée restent conservées ; les délais d’anciennes données continuent normalement de s’écouler.
+- Publication et QA finale consignées dans l’état de livraison. Les captures et comparaisons avant/après restent hors du dépôt public.

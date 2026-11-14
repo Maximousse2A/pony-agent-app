@@ -44,6 +44,6 @@ Pas de test avec un agent dans la rue, soleil, gants ou réseau mobile. L’ouve
 
 Carte schématique et positions fictives. Scan, ouverture et validation du dépôt restent simulés. La fonctionnalité de Partie 2 demeure non construite ; le regroupement corrige les cibles de la carte obligatoire, sans optimisation de tournée ou conclusions d’entretien.
 
-Aucun constat bloquant de cette passe ne reste ouvert après correction et contrôle local. La publication doit être vérifiée séparément et consignée dans [l’état de livraison](docs/RELEASE_STATUS.md).
+Aucun constat bloquant de cette passe ne reste ouvert après correction et contrôle local. La publication a aussi été vérifiée séparément : commit `33d8e29`, exécution GitHub Actions `43569675110` réussie, déploiement Pages `7784171652`, ressources publiques identiques au build local et navigateur public sans avertissement ni erreur. L’ancienne mission sélectionnée a été conservée ; carte et revenus inspectés. Voir [l’état de livraison](docs/RELEASE_STATUS.md).
 
 final result: passed
