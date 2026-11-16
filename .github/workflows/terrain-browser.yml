@@ -1,0 +1,16 @@
+name: Verify PonyOps public demo in Chrome
+on:
+  push:
+    branches: [qa/terrain-navigateur]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install isolated browser driver
+        run: npm install --prefix "$RUNNER_TEMP/pony-browser" --no-audit --no-fund playwright-core@1.55.0
+      - name: Navigate the public prototype on mobile and desktop
+        run: NODE_PATH="$RUNNER_TEMP/pony-browser/node_modules" node application/tests/browser.cjs
