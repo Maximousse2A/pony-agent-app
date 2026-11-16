@@ -16,7 +16,7 @@ async function run(){
    await p.getByRole('heading',{name:'Missions terrain'}).waitFor();
    const btn=(name)=>p.getByRole('button',{name,exact:true});
    const tap=(act)=>p.locator('[data-act="'+act+'"]:visible').click();
-   const reset=async()=>{await tap('demo');await tap('confirm-reset');await tap('reset');};
+   const reset=async()=>{await tap('demo');await tap('confirm-reset');await tap('reset');await p.getByRole('heading',{name:'Missions terrain',exact:true}).waitFor();};
    const fit=async()=>{assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),'Horizontal overflow');};
    await fit();
    assert.equal(await p.locator('.pin').count(),8);
@@ -42,7 +42,7 @@ async function run(){
    await fit();await p.getByText('Afficher la photo du dépôt',{exact:true}).click();
    assert.ok(await p.locator('.receipt-photo').evaluate(i=>i.complete&&i.naturalWidth>0));
    if(opts.review){await p.getByText('Simuler la décision de supervision',{exact:true}).click();await tap('review-ok');assert.equal(await p.locator('.receipt-result .status').innerText(),'Approuvée');}
-   await tap('to-history');assert.equal(await p.locator('.history-row').count(),7);
+   await tap('to-history');await p.getByRole('heading',{name:'Historique',exact:true}).waitFor();assert.equal(await p.locator('.history-row').count(),7);
    if(expected==='Rejetée'){await btn('Rejetées').click();assert.equal(await p.locator('.history-row').count(),2);}
    await p.getByRole('link',{name:'Revenus',exact:true}).click();
    const amount=await p.locator('.earn-hero strong').innerText();
