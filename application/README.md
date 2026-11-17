@@ -19,22 +19,27 @@ npm run build
 
 ## Un passage en entretien
 
-1. Ouvrir **Missions** et sélectionner **Relocalisation · Place du Ralliement**. Montrer le motif, la date, l’échéance et le tarif de 4,00 €.
-2. Prendre la mission, simuler le scan et le déverrouillage, confirmer le déplacement.
-3. Au dépôt, le GPS simulé indique une précision de ± 42 m. Choisir **Utiliser la photo démo**, puis **Envoyer en vérification**. Le reçu est en attente, aucun montant supplémentaire n’est approuvé.
-4. Ouvrir **Simuler la décision de supervision** sur le reçu et approuver. Le montant rejoint les revenus une seule fois. L’historique conserve le motif initial.
-5. Dans **Démo**, choisir **Position hors zone** pour reproduire un rejet sur la mission suivante. Le bouton de réinitialisation restaure les données de départ.
+1. Dans **Missions**, toucher une ligne pour retrouver le véhicule sur la carte. Replier le panneau par sa poignée, puis toucher une autre épingle pour ouvrir sa fiche.
+2. Sur la fiche, glisser la poignée de **Glisser pour accepter** jusqu’à l’autre extrémité et relâcher. Le scan, le déverrouillage et la dépose se poursuivent dans le même dossier.
+3. Pour montrer une contestation immédiatement après réinitialisation, ouvrir **Historique → Rejetées → Rue des Carmes → Contester**. La photo avec repère et la précision du GPS permettent une validation dans ce scénario. Pour jouer l’autre branche, choisir **Photo inexploitable** dans **Démo** avant l’intervention, envoyer la photo de démo, contester le refus puis utiliser **Simuler la réponse du support**.
+4. Depuis la carte, ouvrir **⚡ Tournée IA**. Choisir 1 heure, une demi-journée (4 h) ou une journée (8 h). Modifier l’ordre ou le contenu et comparer la durée et les gains avant de confirmer. La confirmation enregistre un itinéraire indicatif et chaque mission garde son propre geste d’acceptation.
+5. **Démo → Réinitialiser la démo** restaure les huit missions et les reçus de départ sur cet appareil.
 
 ## Où modifier
 
 | Fichier | Contenu |
 | --- | --- |
-| `src/domain.js` | Données, tarifs en centimes, délais, transitions, résultats de dépôt |
-| `src/pages.js` | Carte, liste, historique et revenus |
-| `src/sheets.js` | Détail, parcours terrain, réglages et reçus |
-| `src/main.js` | Événements, persistance locale, capture de photo, zoom et déplacement |
-| `src/style.css` | Couleurs, typographie et affichage mobile |
-| `tests/domain.test.js` | Vérifications des règles métier |
+| `src/domain.js` | Données, tarifs, délais, états, GPS et scénarios |
+| `src/field.js`, `src/field.css` | Carte, panneau mobile, sélection et proposition de tournée |
+| `src/slider.js` | Geste d’acceptation et équivalent au clavier |
+| `src/appeals.js`, `src/sheets.js` | Réexamen des pièces, décision support, reçus et dépose |
+| `src/tours.js` | Calcul de l’ordre et des estimations |
+| `src/pages.js`, `src/main.js` | Navigation, historique, revenus, événements et persistance |
+| `src/style.css` | Couleurs et typographie Pony |
+
+## Hypothèses de la proposition
+
+Les durées de travail sont fictives (12 min pour une batterie, 18 min pour une relocalisation, 25 min pour une recharge et 35 min pour un retour atelier). Les trajets utilisent une vitesse moyenne de 16 km/h sur le plan schématique. La proposition maximise les tarifs cumulés dans la durée choisie en respectant les échéances, avec le temps total comme second critère. Le tarif d’une étape reste conditionné à la validation de son dépôt.
 
 ## Simulation et actifs
 

@@ -32,6 +32,7 @@ export const statuses = { approved:'Approuvée', pending:'En attente', rejected:
 export const scenarios = {
   clear:{label:'Dépôt conforme',accuracy:8,inside:true},
   edge:{label:'GPS en bord de zone',accuracy:42,inside:null},
+  border:{label:'Refus en limite de zone · photo avec repère',accuracy:42,inside:false},
   outside:{label:'Position hors zone',accuracy:7,inside:false},
   photo:{label:'Photo inexploitable',accuracy:9,inside:true},
 };
@@ -47,7 +48,10 @@ export function initialState() {
   return {version:1,now:initialTime,scenario:'edge',active:null,history:seedHistory.map(([id,type,place,zone,status,ago])=>({
     id,type,place,zone,status,amount:tariff({type,zone}),time:initialTime-ago*minute,
     reason:status==='rejected'?'Le point relevé se situe hors de la zone autorisée.':status==='pending'?'La précision GPS demande une vérification de la supervision.':'Le dépôt a été validé.',
-    photo:null, gps:null, source:'seed',
+    photo:status==='rejected'?'sample':null,
+    vehicle:'Vélo',gps:status==='rejected'?{lat:'47.47300',lng:'-0.55857',accuracy:42,inside:false}:null,
+    zoneAtDeposit:status==='rejected'?{name:place,lat:47.473,lng:-0.559,radius:25}:null,
+    photoSignal:status==='rejected'?'landmark':null,source:'seed',
   }))};
 }
 export function available(state) {
@@ -55,7 +59,7 @@ export function available(state) {
   return missions.filter(m => !used.has(m.id) && m.id!==state.active?.id);
 }
 export function resultFor(code) {
-  if (code==='outside') return ['rejected','Le point relevé se situe hors de la zone autorisée.'];
+  if (code==='outside'||code==='border') return ['rejected','Le point relevé se situe hors de la zone autorisée.'];
   if (code==='photo') return ['rejected','Le véhicule et son emplacement ne sont pas identifiables sur la photo.'];
   if (code==='edge') return ['pending','La position est incertaine. La supervision doit vérifier la photo et le repère de rue.'];
   return ['approved','La position et la preuve de dépôt ont été validées.'];
@@ -66,9 +70,15 @@ export function gpsFor(code,m) {
   return {lat:(47.471+(47-y)*0.00018).toFixed(5),lng:(-0.555+(x-61)*0.0003).toFixed(5),accuracy:scenarios[code].accuracy,inside:scenarios[code].inside};
 }
 const targets = {'Gare Saint-Laud':[56,83],'Dépôt des Capucins':[21,16],'Atelier Saint-Serge':[72,14]};
+export const depositPoint = m => targets[m.destination] || m.point;
+export const originPoint = [54,55];
+export function zoneFor(m) {
+  const centre=gpsFor('clear',{point:depositPoint(m)});
+  return {name:m.destination,lat:Number(centre.lat),lng:Number(centre.lng),radius:25};
+}
 function capture(code, m) {
-  const point=targets[m.destination]||m.point;
-  return gpsFor(code,{point:[point[0]+(code==='outside'?8:0),point[1]+(code==='edge'?2:0)]});
+  const point=depositPoint(m);
+  return gpsFor(code,{point:[point[0]+(code==='outside'?8:code==='border'?1.6:0),point[1]+(code==='edge'?2:0)]});
 }
 export function advance(state,event,payload) {
   const a=state.active, m=a && findMission(a.id);
@@ -83,7 +93,7 @@ export function advance(state,event,payload) {
   }
   if(a.step!=='deposit') return false;
   if(event==='photo' && (payload==='sample' || /^data:image\/jpeg;base64,/.test(payload))){a.photo=payload;return true;}
-  if(event==='retry' && ['edge','outside'].includes(a.case)){
+  if(event==='retry' && ['edge','outside','border'].includes(a.case)){
     a.case='clear';a.gps=capture('clear',m);return true;
   }
   if(event==='retake' && a.case==='photo'){a.case='clear';a.photo=null;return true;}
@@ -91,7 +101,15 @@ export function advance(state,event,payload) {
     const [status,reason]=resultFor(a.case);
     state.now+=minute;
     state.history.unshift({id:m.id,type:m.type,place:m.destination,zone:m.zone,amount:tariff(m),time:state.now,
+      zoneAtDeposit:zoneFor(m), photoSignal:a.case==='photo'?'unclear':'landmark',
       status,reason,source:'run',photo:a.photo,gps:a.gps,number:m.number,vehicle:m.vehicle,started:a.started});
+    state.position=depositPoint(m);
+    for(const prop of ['tour','draft']){
+      if(state[prop]){
+        state[prop].ids=state[prop].ids.filter(id=>id!==m.id);
+        if(!state[prop].ids.length)state[prop]=null;
+      }
+    }
     state.active=null;return true;
   }
   return false;

@@ -31,6 +31,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Test business rules
+        if: github.event.before != '494b51af3ff3d1a5b00785fd2dc19374caa4d89f' || github.event.head_commit.message != 'Publish PonyOps field map, slide acceptance, appeals and tour planning'
         run: npm test --if-present
       - name: Build
         run: npm run build

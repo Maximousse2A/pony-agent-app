@@ -1,4 +1,6 @@
+import {types} from './domain.js';
 const paths={
+  bolt:'<path d="m13 2-9 12h7l-1 8 10-13h-8z"/>',up:'<path d="m6 15 6-6 6 6"/>',
   map:'<path d="m3 5 6-2 6 3 6-2v15l-6 2-6-3-6 2zM9 3v15m6-12v15"/>',
   clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/>',
   history:'<path d="M3 6v5h5"/><path d="M3.5 10a8.5 8.5 0 1 1 .7 6M12 7v5l3 2"/>',
@@ -28,3 +30,5 @@ const paths={
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/>',
 };
 export const icon=(key,size=20)=>'<svg class="icon" aria-hidden="true" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">'+(paths[key]||'')+'</svg>';
+
+export function typeMark(type,large=false){return `<span class="type-mark ${type} ${large?'large':''}">${icon(types[type].icon,large?26:21)}</span>`}
