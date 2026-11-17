@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initialState,advance,missions,tariff,deadline,available,totals,review,initialTime} from '../src/domain.js';
+import {initialState,advance,missions,tariff,deadline,available,totals,review,initialTime,requiresDeposit} from '../src/domain.js';
 const first=missions[0];
 function depositReady(code='clear',m=first) {
  const s=initialState();s.scenario=code;
- for(const e of ['take','scan','unlock','work'])assert.equal(advance(s,e,m.id),true);
+ for(const e of ['take','arrive','scan','unlock','work',...(requiresDeposit(m)?['arrive-depot']:[])])assert.equal(advance(s,e,m.id),true);
  return s;
 }
 for(const [type,centre,outer,hours] of [['battery',250,200,4],['move',400,350,6],['charge',700,600,4],['shop',600,600,24]]){
@@ -17,7 +17,8 @@ for(const [type,centre,outer,hours] of [['battery',250,200,4],['move',400,350,6]
 test('Les étapes obligatoires et la prise unique sont respectées',()=>{
  const s=initialState();assert.equal(advance(s,'scan'),false);assert.equal(advance(s,'take','inconnue'),false);
  advance(s,'take',first.id);assert.equal(advance(s,'take',missions[1].id),false);
- assert.equal(advance(s,'work'),false);assert.equal(advance(s,'unlock'),false);advance(s,'scan');advance(s,'unlock');advance(s,'work');
+ assert.equal(advance(s,'work'),false);assert.equal(advance(s,'unlock'),false);assert.equal(advance(s,'scan'),false);advance(s,'arrive');advance(s,'scan');advance(s,'unlock');advance(s,'work');
+ assert.equal(advance(s,'deposit'),false);advance(s,'arrive-depot');
  assert.ok(s.active.gps);assert.equal(advance(s,'deposit'),false);
 });
 for(const [code,status] of [['clear','approved'],['edge','pending'],['outside','rejected'],['photo','rejected']]){
@@ -51,7 +52,7 @@ test('Supervision simulée · décision unique, conservation du motif initial',(
  }
 });
 test('Les huit missions peuvent être réalisées et le reset restaure la tournée',()=>{
- const s=initialState();for(const m of missions){for(const e of ['take','scan','unlock','work','photo','deposit'])assert.equal(advance(s,e,e==='photo'?'sample':m.id),true);}
+ const s=initialState();for(const m of missions){for(const e of ['take','arrive','scan','unlock','work',...(requiresDeposit(m)?['arrive-depot']:[]),'photo','deposit'])assert.equal(advance(s,e,e==='photo'?'sample':m.id),true);}
  assert.equal(available(s).length,0);const fresh=initialState();assert.equal(available(fresh).length,8);assert.equal(fresh.now,initialTime);assert.equal(fresh.history.length,6);assert.equal(fresh.active,null);
 });
 

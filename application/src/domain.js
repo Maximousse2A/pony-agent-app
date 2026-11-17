@@ -7,23 +7,23 @@ export const types = {
 export const initialTime = Date.parse('2026-11-16T09:40:00+01:00');
 const minute = 60000;
 const missionRows = [
-  ['AG-2048','move','Place du Ralliement','Centre-ville',240,'Vélo','V-1842','Vélo immobile depuis 72 h',335,[61,47],'Gare Saint-Laud'],
-  ['AG-2059','battery','Boulevard Foch','Centre-ville',360,'Vélo','V-0927','Batterie à 12 %',100,[70,64],'Boulevard Foch'],
-  ['AG-2061','charge','Quai de la Savatte','Centre-ville',620,'Trottinette','T-3110','Batterie à 5 %, recharge au dépôt',75,[36,48],'Dépôt des Capucins'],
-  ['AG-2032','shop','Place Molière','Centre-ville',850,'Vélo','V-0615','Frein arrière signalé par un usager',620,[52,29],'Atelier Saint-Serge'],
-  ['AG-2066','battery','Avenue Jean-Joxé','Périphérie',1600,'Trottinette','T-2246','Batterie à 9 %',56,[76,18],'Avenue Jean-Joxé'],
-  ['AG-2068','move','Place Bichon','Périphérie',1900,'Vélo','V-1470','Stationnement hors secteur',90,[19,28],'Place Bichon'],
-  ['AG-2074','charge','Rue des Ponts-de-Cé','Périphérie',2700,'Vélo','V-1971','Batterie à 4 %, recharge au dépôt',50,[79,82],'Dépôt des Capucins'],
-  ['AG-2078','shop','Rue Saint-Jacques','Périphérie',3100,'Trottinette','T-2510','Direction à contrôler à l’atelier',42,[18,72],'Atelier Saint-Serge'],
+  ['AG-2048','move','Place du Ralliement','Centre-ville',240,'Vélo','V-1842','Vélo immobile depuis 72 h',335,[61,47],'Gare Saint-Laud',2],
+  ['AG-2059','battery','Boulevard Foch','Centre-ville',360,'Vélo','V-0927','Batterie à 12 %',100,[70,64],'Boulevard Foch',1],
+  ['AG-2061','charge','Quai de la Savatte','Centre-ville',620,'Trottinette','T-3110','Batterie à 5 %, recharge au dépôt',75,[36,48],'Dépôt des Capucins',2],
+  ['AG-2032','shop','Place Molière','Centre-ville',850,'Vélo','V-0615','Frein arrière signalé par un usager',620,[52,29],'Atelier Saint-Serge',3],
+  ['AG-2066','battery','Avenue Jean-Joxé','Périphérie',1600,'Trottinette','T-2246','Batterie à 9 %',56,[76,18],'Avenue Jean-Joxé',2],
+  ['AG-2068','move','Place Bichon','Périphérie',1900,'Vélo','V-1470','Stationnement hors secteur',90,[19,28],'Place Bichon',0],
+  ['AG-2074','charge','Rue des Ponts-de-Cé','Périphérie',2700,'Vélo','V-1971','Batterie à 4 %, recharge au dépôt',50,[79,82],'Dépôt des Capucins',3],
+  ['AG-2078','shop','Rue Saint-Jacques','Périphérie',3100,'Trottinette','T-2510','Direction à contrôler à l’atelier',42,[18,72],'Atelier Saint-Serge',1],
 ];
-export const missions = missionRows.map(([id,type,place,zone,metres,vehicle,number,reason,age,point,destination])=>({
-  id,type,place,zone,metres,vehicle,number,reason,point,destination,created:initialTime-age*minute,
+export const missions = missionRows.map(([id,type,place,zone,metres,vehicle,number,reason,age,point,destination,priority])=>({
+  id,type,place,zone,metres,vehicle,number,reason,point,destination,priority,created:initialTime-age*minute,
 }));
 export const findMission = id => missions.find(m => m.id === id);
 export const tariff = m => types[m.type].cents[m.zone === 'Centre-ville' ? 0 : 1];
 export const deadline = m => m.created + types[m.type].hours*60*minute;
 export const money = c => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(c/100);
-export const distance = m => m < 1000 ? m+' m' : (m/1000).toLocaleString('fr-FR')+' km';
+export const distance = m => m < 1000 ? m+' m' : (m/1000).toLocaleString('fr-FR',{maximumFractionDigits:1})+' km';
 const format = (t,options) => new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',...options}).format(t);
 export const hour = t => format(t,{hour:'2-digit',minute:'2-digit'});
 export const day = t => format(t,{day:'numeric',month:'short'});
@@ -64,10 +64,13 @@ export function resultFor(code) {
   if (code==='edge') return ['pending','La position est incertaine. La supervision doit vérifier la photo et le repère de rue.'];
   return ['approved','La position et la preuve de dépôt ont été validées.'];
 }
+// Project the original demo map points into the same Angers coordinates used for proofs.
+export function coordinates([x,y]) {
+  return [Number((47.471+(47-y)*0.00018).toFixed(5)), Number((-0.555+(x-61)*0.0003).toFixed(5))];
+}
 export function gpsFor(code,m) {
-  const [x,y]=m.point;
-  // Synthetic coordinates, recorded as soon as the deposit step opens.
-  return {lat:(47.471+(47-y)*0.00018).toFixed(5),lng:(-0.555+(x-61)*0.0003).toFixed(5),accuracy:scenarios[code].accuracy,inside:scenarios[code].inside};
+  const [lat,lng]=coordinates(m.point);
+  return {lat:lat.toFixed(5),lng:lng.toFixed(5),accuracy:scenarios[code].accuracy,inside:scenarios[code].inside};
 }
 const targets = {'Gare Saint-Laud':[56,83],'Dépôt des Capucins':[21,16],'Atelier Saint-Serge':[72,14]};
 export const depositPoint = m => targets[m.destination] || m.point;
@@ -80,16 +83,29 @@ function capture(code, m) {
   const point=depositPoint(m);
   return gpsFor(code,{point:[point[0]+(code==='outside'?8:code==='border'?1.6:0),point[1]+(code==='edge'?2:0)]});
 }
-export function advance(state,event,payload) {
+export const requiresDeposit = m => m.type !== 'battery';
+function openProof(a,m) {
+  a.step='deposit';a.gps=capture(a.case,m);a.photo=null;
+}
+export function advance(state,event,payload,at=Date.now()) {
   const a=state.active, m=a && findMission(a.id);
   if(event==='take' && !a && available(state).some(item=>item.id===payload)) {
-    state.active={id:payload,step:'scan',started:state.now}; return true;
+    state.active={id:payload,step:'travel',started:state.now,timing:{acceptedAt:at}}; return true;
   }
   if(!a) return false;
+  // Old saves keep their current step. Record only boundaries actually observed.
+  const stamp = key => { (a.timing ||= {})[key] = at; };
+  if(event==='arrive' && a.step==='travel'){stamp('arrivedAtVehicle');a.step='scan';return true;}
   if(event==='scan' && a.step==='scan'){a.step='unlock';state.now+=minute;return true;}
-  if(event==='unlock' && a.step==='unlock'){a.step='work';return true;}
+  if(event==='unlock' && a.step==='unlock'){stamp('interventionStartedAt');a.step='work';return true;}
   if(event==='work' && a.step==='work'){
-    a.step='deposit';a.case=state.scenario;a.gps=capture(a.case,m);a.photo=null;state.now+=5*minute;return true;
+    stamp('interventionEndedAt');a.case=state.scenario;state.now+=5*minute;
+    if(requiresDeposit(m)) a.step='handoff';
+    else openProof(a,m);
+    return true;
+  }
+  if(event==='arrive-depot' && a.step==='handoff'){
+    stamp('arrivedAtDeposit');openProof(a,m);return true;
   }
   if(a.step!=='deposit') return false;
   if(event==='photo' && (payload==='sample' || /^data:image\/jpeg;base64,/.test(payload))){a.photo=payload;return true;}
@@ -98,11 +114,12 @@ export function advance(state,event,payload) {
   }
   if(event==='retake' && a.case==='photo'){a.case='clear';a.photo=null;return true;}
   if(event==='deposit' && a.gps && a.photo){
+    stamp('completedAt');
     const [status,reason]=resultFor(a.case);
     state.now+=minute;
     state.history.unshift({id:m.id,type:m.type,place:m.destination,zone:m.zone,amount:tariff(m),time:state.now,
       zoneAtDeposit:zoneFor(m), photoSignal:a.case==='photo'?'unclear':'landmark',
-      status,reason,source:'run',photo:a.photo,gps:a.gps,number:m.number,vehicle:m.vehicle,started:a.started});
+      status,reason:m.type==='battery'&&status==='approved'?'La position et la photo de l’intervention ont été validées.':reason,source:'run',photo:a.photo,gps:a.gps,number:m.number,vehicle:m.vehicle,started:a.started,timing:{...a.timing}});
     state.position=depositPoint(m);
     for(const prop of ['tour','draft']){
       if(state[prop]){
