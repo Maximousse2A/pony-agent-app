@@ -45,9 +45,23 @@ async function run(){
    if(opts.retake){await tap('retake');assert.equal(await p.locator('[data-act="deposit"]').isDisabled(),true);await tap('sample');}
    await tap('deposit');await p.getByRole('heading',{name:'Résultat du dépôt'}).waitFor();
    assert.equal(await p.locator('.receipt-result .status').innerText(),expected);
+   if(expected==='En attente'){
+    const shown=await p.locator('.receipt-result strong').innerText();
+    assert.equal(shown.replace(/\s/g,''),'4,00€');
+    await p.getByText('En attente de décision · hors revenus approuvés',{exact:true}).waitFor();
+   }
    await fit();await capture('recu');await p.getByText('Afficher la photo du dépôt',{exact:true}).click();
    assert.ok(await p.locator('.receipt-photo').evaluate(i=>i.complete&&i.naturalWidth>0));
-   if(opts.review){await p.getByText('Simuler la décision de supervision',{exact:true}).click();await tap('review-ok');assert.equal(await p.locator('.receipt-result .status').innerText(),'Approuvée');}
+   if(opts.review){
+    await tap('to-history');
+    await p.getByRole('heading',{name:'Historique',exact:true}).waitFor();
+    await p.getByRole('link',{name:'Revenus',exact:true}).click();
+    assert.equal((await p.locator('.earn-hero strong').innerText()).replace(/\s/g,''),'9,50€');
+    await p.locator('.history-row[data-id="'+row+'"]').click();
+    await p.getByText('Simuler la décision de supervision',{exact:true}).click();
+    await tap('review-ok');
+    assert.equal(await p.locator('.receipt-result .status').innerText(),'Approuvée');
+   }
    await tap('to-history');await p.getByRole('heading',{name:'Historique',exact:true}).waitFor();assert.equal(await p.locator('.history-row').count(),7);
    if(expected==='Rejetée'){await btn('Rejetées').click();assert.equal(await p.locator('.history-row').count(),2);}
    await p.getByRole('link',{name:'Revenus',exact:true}).click();
@@ -72,3 +86,4 @@ async function run(){
  }finally{await browser.close();}
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
+
