@@ -18,7 +18,12 @@ async function run(){
    const tap=(act)=>p.locator('[data-act="'+act+'"]:visible').click();
    const reset=async()=>{await tap('demo');await tap('confirm-reset');await tap('reset');await p.getByRole('heading',{name:'Missions terrain',exact:true}).waitFor();};
    const fit=async()=>{assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),'Horizontal overflow');};
-   await fit();
+   async function capture(name) {
+    if (!opts.map && !opts.shop) return;
+    await p.evaluate(() => document.fonts.ready);
+    await p.screenshot({path: path.join('visual-qa',width+'-'+name+'.jpg'), type:'jpeg', quality:75});
+   }
+   await fit();await capture('missions');
    assert.equal(await p.locator('.pin').count(),8);
    await tap('zoom-in');await tap('recenter');
    await tap('filter');await p.getByLabel('Changement de batterie',{exact:true}).check();
@@ -32,6 +37,7 @@ async function run(){
    await btn('Prendre cette mission').click();await btn('Simuler le scan').click();
    await btn('Simuler le déverrouillage').click();await tap('work');
    assert.equal(await p.locator('[data-act="deposit"]').isDisabled(),true);await fit();
+   await capture('depot');
    if(opts.file){await p.locator('#photoInput').setInputFiles(path.join(__dirname,'../src/assets/bike.jpg'));await p.getByText('Photo ajoutée sur cet appareil',{exact:true}).waitFor();}
    else await tap('sample');
    if(opts.resume){await p.reload();await p.locator('.in-progress').click();assert.equal(await p.locator('.proof-image img').count(),1);}
@@ -39,13 +45,14 @@ async function run(){
    if(opts.retake){await tap('retake');assert.equal(await p.locator('[data-act="deposit"]').isDisabled(),true);await tap('sample');}
    await tap('deposit');await p.getByRole('heading',{name:'Résultat du dépôt'}).waitFor();
    assert.equal(await p.locator('.receipt-result .status').innerText(),expected);
-   await fit();await p.getByText('Afficher la photo du dépôt',{exact:true}).click();
+   await fit();await capture('recu');await p.getByText('Afficher la photo du dépôt',{exact:true}).click();
    assert.ok(await p.locator('.receipt-photo').evaluate(i=>i.complete&&i.naturalWidth>0));
    if(opts.review){await p.getByText('Simuler la décision de supervision',{exact:true}).click();await tap('review-ok');assert.equal(await p.locator('.receipt-result .status').innerText(),'Approuvée');}
    await tap('to-history');await p.getByRole('heading',{name:'Historique',exact:true}).waitFor();assert.equal(await p.locator('.history-row').count(),7);
    if(expected==='Rejetée'){await btn('Rejetées').click();assert.equal(await p.locator('.history-row').count(),2);}
    await p.getByRole('link',{name:'Revenus',exact:true}).click();
    const amount=await p.locator('.earn-hero strong').innerText();
+   await capture('revenus');
    const expectedAmount=expected==='Rejetée'?9.50:opts.review||expected==='Approuvée'?9.50+(opts.battery?2.5:opts.shop?6:opts.charge?7:4):9.50;
    assert.equal(Number(amount.replace(/[^0-9,]/g,'').replace(',','.')),expectedAmount);
    await reset();assert.equal(await p.locator('.pin').count(),8);await fit();
