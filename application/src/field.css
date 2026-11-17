@@ -1,12 +1,22 @@
 
 /* The canvas extends underneath the controls. The dock is the only scrolling region. */
 body:has(.field-main) { overflow:hidden; padding:0 }
-.field-main { position:fixed; inset:0; height:100dvh; max-width:none; padding:0; margin:0 }
-body:has(.field-main) .top { position:fixed; z-index:4; top:16px; left:20px; right:20px; background:transparent; pointer-events:none }
-body:has(.field-main) .topinner { pointer-events:auto; width:fit-content; max-width:100%; margin:0; height:56px; padding:0 14px; gap:18px; border-radius:15px; background:var(--purple); box-shadow:0 2px 9px #29203426 }
-body:has(.field-main) .brand img { width:64px }
-body:has(.field-main) .navitem { font-size:14px; padding:0 12px }
-body:has(.field-main) .demo { margin:0; min-height:36px }
+#app.missions-home {
+ --edge-left:max(12px,env(safe-area-inset-left,0px));
+ --edge-right:max(12px,env(safe-area-inset-right,0px));
+ --edge-top:max(10px,env(safe-area-inset-top,0px));
+ --edge-bottom:max(8px,env(safe-area-inset-bottom,0px));
+ position:fixed; inset:0 0 auto; height:var(--field-viewport,100vh); height:100dvh;
+ display:grid; grid-template-rows:minmax(0,1fr) auto; isolation:isolate;
+}
+.field-main { position:relative; grid-row:1; min-height:0; min-width:0; max-width:none; padding:0; margin:0; overflow:hidden }
+#app.missions-home>.mobile-nav { grid-row:2 }
+body:has(.field-main) #announcement { pointer-events:none }
+#app.missions-home .top { position:absolute; z-index:4; top:max(16px,var(--edge-top)); left:max(20px,var(--edge-left)); right:max(20px,var(--edge-right)); background:transparent; pointer-events:none }
+#app.missions-home .topinner { pointer-events:auto; width:fit-content; max-width:100%; margin:0; height:56px; padding:0 14px; gap:18px; border-radius:15px; background:var(--purple); box-shadow:0 2px 9px #29203426 }
+#app.missions-home .brand img { width:64px }
+#app.missions-home .navitem { font-size:14px; padding:0 12px }
+#app.missions-home .demo { margin:0; min-height:36px }
 .field-screen,.field-screen .map-window { position:absolute; inset:0; background:#e9e7dd }
 .field-screen .map-window { touch-action:none }
 .field-screen .map-plane { inset:auto; top:50%; left:50%; touch-action:none; cursor:grab; transform-origin:center }
@@ -24,26 +34,31 @@ body:has(.field-main) .demo { margin:0; min-height:36px }
 .field-screen .pin.picked span { outline:3px solid var(--royal); background:var(--royal); box-shadow:0 0 0 7px #ffffffba }
 .field-screen .pin.picked span:after { background:var(--royal) }
 .pin-caption { position:absolute; bottom:calc(100% + 3px); left:50%; transform:translateX(-50%); background:var(--purple); color:white; border:2px solid white; padding:3px 8px; border-radius:8px; white-space:nowrap; font-size:12px }
-.dock-zone { position:absolute; left:20px; bottom:20px; width:min(420px,calc(100% - 40px)); display:flex; flex-direction:column; align-items:stretch; gap:10px; pointer-events:none }
-.dock-tools { display:flex; justify-content:flex-end }
-.bolt { pointer-events:auto; display:flex; align-items:center; gap:8px; min-height:46px; padding:10px 17px; color:white; font-weight:650; background:var(--purple); border:2px solid white; box-shadow:0 2px 8px #30274f35; border-radius:28px }
+.dock-zone {
+ position:absolute; inset:auto auto var(--edge-bottom) max(20px,var(--edge-left));
+ width:min(420px,calc(100% - var(--edge-left) - var(--edge-right) - 16px));
+ max-height:calc(100% - var(--edge-top) - var(--edge-bottom) - 66px);
+ display:flex; flex-direction:column; align-items:stretch; gap:8px; pointer-events:none;
+}
+.bolt { align-self:flex-end; flex:none; pointer-events:auto; display:flex; align-items:center; gap:8px; min-height:44px; padding:8px 15px; color:white; font-weight:650; background:var(--purple); border:2px solid white; box-shadow:0 2px 8px #30274f35; border-radius:28px }
 .bolt .icon { color:#86e6f2 }
-.field-dock { pointer-events:auto; display:flex; flex-direction:column; min-height:0; max-height:min(51dvh,480px); background:white; border:1px solid #d9d5e2; border-radius:20px; box-shadow:0 4px 20px #30274f21; overflow:hidden }
-.field-screen.editing .field-dock { max-height:min(68dvh,680px) }
-.field-screen.editing:not(.folded) .dock-tools { display:none }
-.dock-handle { display:grid; place-items:center; width:100%; min-height:25px; flex:none; touch-action:none; cursor:ns-resize }
-.dock-handle span { width:40px; height:4px; border-radius:8px; background:#c7c3d0 }
+.field-dock { pointer-events:auto; display:flex; flex-direction:column; min-height:0; max-height:55vh; max-height:55dvh; background:white; border:1px solid #d9d5e2; border-radius:16px; box-shadow:0 4px 20px #30274f21; overflow:hidden }
+.field-screen.editing .field-dock { max-height:72vh; max-height:72dvh }
+.dock-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; flex:none; min-height:46px; padding:5px 14px; color:var(--purple); text-align:left; touch-action:manipulation }
+.dock-toggle strong,.dock-command { display:inline-flex; align-items:center; gap:7px }
+.dock-command { font-size:14px; font-weight:650; color:var(--royal) }
+.dock-content { display:flex; flex-direction:column; min-height:0; overflow:hidden; border-top:1px solid var(--border) }
+.dock-content[hidden] { display:none }
 .dock-heading,.plan-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 18px 12px; flex:none }
 .dock-heading h2,.plan-heading h2,.vehicle-head h2 { color:var(--purple); font-size:23px; line-height:1.12; letter-spacing:-.6px; margin:0 }
 .dock-heading small,.vehicle-head small,.trip-metrics small { color:var(--muted); font-size:13px }
 .dock-heading small { display:block; margin-bottom:4px }
 .dock-heading .field-tool { border:1px solid var(--border) }
-.field-dock .mission-list { min-height:0; overflow-y:auto; overscroll-behavior:contain; flex:1 1 auto; scrollbar-width:thin }
+.field-dock .mission-list { border-top:0; touch-action:pan-y; min-height:0; overflow-y:auto; overscroll-behavior:contain; flex:1 1 auto; scrollbar-width:thin }
 .field-dock .mission-row { padding:13px 16px }
 .field-dock .selected-row { background:#f1edff; box-shadow:inset 3px 0 var(--royal) }
-.fold-summary,.saved-tour,.tour-strip,.next-stop,.detail-tools { display:flex; align-items:center; gap:8px; color:var(--purple) }
-.fold-summary { justify-content:space-between; text-align:left; padding:0 16px 14px; min-height:34px }
-.fold-summary span,.next-stop { font-size:13px }
+.saved-tour,.tour-strip,.next-stop,.detail-tools { display:flex; align-items:center; gap:8px; color:var(--purple) }
+.next-stop { font-size:13px }
 .saved-tour,.tour-strip,.next-stop { padding:8px 16px; min-height:42px; background:#f4f1fc; font-size:13px }
 .saved-tour span,.tour-strip span { margin-right:auto }
 .next-stop { text-align:left; justify-content:space-between }
@@ -103,23 +118,23 @@ body:has(.field-main) .demo { margin:0; min-height:36px }
 .case-timeline b { font-size:14px }
 .case-timeline p { font-size:13px; margin:4px 0 }
 .case-label { color:var(--purple); font-size:12px; text-align:right }
+.field-dock .dock-heading { padding:4px 12px; min-height:44px }
 @media(min-width:701px) and (max-width:900px) {
  .map-locality { top:84px; left:20px; right:auto }
 }
 @media(max-width:700px) {
- body:has(.field-main) .top { top:max(9px,env(safe-area-inset-top)); left:12px; right:12px }
- body:has(.field-main) .topinner { height:44px; width:100%; justify-content:space-between; padding:0 10px; border-radius:12px }
- body:has(.field-main) .brand img { width:57px }
- body:has(.field-main) .demo { min-height:34px; font-size:12px }
- .map-locality { left:12px; right:auto; top:calc(max(9px,env(safe-area-inset-top)) + 54px); padding:7px 10px; font-size:12px }
- .map-utilities { right:12px; top:calc(max(9px,env(safe-area-inset-top)) + 54px) }
+ #app.missions-home .top { top:var(--edge-top); left:var(--edge-left); right:var(--edge-right) }
+ #app.missions-home .topinner { height:44px; width:100%; justify-content:space-between; padding:0 10px; border-radius:12px }
+ #app.missions-home .brand img { width:57px }
+ #app.missions-home .demo { min-height:34px; font-size:12px }
+ .map-locality { left:var(--edge-left); right:auto; top:calc(var(--edge-top) + 50px); padding:7px 10px; font-size:12px }
+ .map-utilities { right:var(--edge-right); top:calc(var(--edge-top) + 50px); display:flex }
+ .map-utilities .field-tool + .field-tool { border-top:0; border-left:1px solid var(--border) }
  .map-utilities .field-tool { width:40px; height:40px }
- .dock-zone { width:100%; left:0; bottom:calc(60px + env(safe-area-inset-bottom)); gap:6px }
- .dock-tools { padding:0 12px }
- .field-dock { border-radius:21px 21px 0 0; border-bottom:none; max-height:43dvh }
- .field-screen.editing .field-dock { max-height:60dvh }
- .field-dock:has(.selected-content) { max-height:50dvh }
- .dock-handle { min-height:25px }
+ #app.missions-home>.mobile-nav { position:static; height:auto; min-height:calc(52px + env(safe-area-inset-bottom,0px)); padding:0 var(--edge-right) env(safe-area-inset-bottom,0px) var(--edge-left) }
+ .dock-zone { bottom:6px; left:var(--edge-left); right:var(--edge-right); width:auto; max-height:calc(100% - var(--edge-top) - 103px); gap:6px }
+ .field-dock { max-height:50vh; max-height:50dvh }
+ .field-screen.editing .field-dock { max-height:66vh; max-height:66dvh }
  .stage-controls .field-tool { width:36px; height:44px }
  .field-screen .pin span { width:34px; height:34px }
  .plan-heading h2 { font-size:20px }
@@ -128,9 +143,24 @@ body:has(.field-main) .demo { margin:0; min-height:36px }
  .field-dock .mission-row { padding:10px 14px }
  .case-label { max-width:90px }
 }
-@media(max-height:560px) {
- .field-screen .field-dock { max-height:48dvh }
- .field-screen.editing .field-dock,.field-dock:has(.selected-content) { max-height:64dvh }
+@media(max-height:560px) and (min-width:480px) and (orientation:landscape) {
+ .dock-zone { left:var(--edge-left); right:var(--edge-right); width:auto; bottom:var(--edge-bottom); height:calc(100% - var(--edge-top) - var(--edge-bottom) - 64px); max-height:none; flex-direction:row-reverse; justify-content:space-between; align-items:flex-end }
+ .folded .dock-zone { height:auto }
+ .field-dock,.field-screen.editing .field-dock { width:min(400px,55%); max-height:100% }
+ .map-utilities { right:var(--edge-right); top:calc(var(--edge-top) + 63px); display:flex }
+ .map-utilities .field-tool + .field-tool { border-top:0; border-left:1px solid var(--border) }
+ .map-locality { display:none }
  .plan-footer .btn { min-height:38px; padding:8px }
 }
-
+@media(max-height:560px) {
+ /* Keep every editor action reachable when browser chrome leaves little vertical space. */
+ .field-screen.editing .dock-content { display:block; overflow:auto; overscroll-behavior:contain }
+ .field-screen.editing .dock-content[hidden] { display:none }
+ .field-screen.editing .plan-scroll { overflow:visible }
+}
+@media(max-height:560px) and (max-width:700px) and (orientation:landscape) {
+ .dock-zone { bottom:5px }
+}
+@media(max-width:360px) {
+ .map-locality span { display:none }
+}

@@ -65,16 +65,19 @@ function missionsPage(state,ui){
  ${mapView(points,state,ui.selected,trip)}
  <div class="map-locality">${icon('pin',16)}<b>Angers</b><span>· Carte simulée</span></div>
  <div class="map-utilities">${tool('zoom-in','Agrandir la carte','plus')}${tool('zoom-out','Réduire la carte','minus')}${tool('recenter','Recentrer la carte','locate')}</div>
- <div class="dock-zone"><div class="dock-tools"><button class="bolt" data-act="plan" aria-label="Proposer une tournée assistée par IA">${icon('bolt',21)}<span>Tournée IA</span></button></div>
+ <div class="dock-zone">
+ <button class="bolt" data-act="${editing&&!folded?'fold':'plan'}" aria-expanded="${editing&&!folded}" aria-label="${editing&&!folded?'Réduire la tournée IA':'Ouvrir la tournée IA'}">${icon('bolt',21)}<span>Tournée IA</span></button>
  <section class="field-dock" id="fieldDock" aria-label="Panneau de missions">
- <button class="dock-handle" data-act="fold" aria-expanded="${!folded}" aria-label="${folded?'Déployer':'Replier'} le panneau"><span></span></button>
- ${folded?`<button class="fold-summary" data-act="fold"><strong>${editing?'Tournée proposée':detail?picked.number:'Missions à proximité'}</strong><span>${editing?duration(trip.minutes):detail?picked.place:list.length+' disponibles'} ${icon('up',16)}</span></button>`:
- editing?routeEditor(state):detail?`<div class="detail-tools">${act('list','À proximité','back','text-btn')}</div><div class="selected-content">${selectedCard(picked,state)}</div>`:
- `<div class="dock-heading"><div><small>Territoire d’Angers · ${hour(state.now)}</small><h2>À proximité <span class="count">${list.length}</span></h2></div>${tool('filter','Filtrer et trier les missions','filter')}</div>
+ <button type="button" class="dock-toggle" data-act="fold" aria-expanded="${!folded}" aria-controls="dockContent">
+ <strong>${editing?'Tournée proposée':detail?picked.number:'À proximité'}${!editing&&!detail?` <span class="count">${list.length}</span>`:''}</strong>
+ <span class="dock-command">${folded?'Ouvrir':'Réduire'} ${icon(folded?'up':'down',17)}</span></button>
+ <div id="dockContent" class="dock-content" ${folded?'hidden':''}>
+ ${folded?'':editing?routeEditor(state):detail?`<div class="detail-tools">${act('list','À proximité','back','text-btn')}</div><div class="selected-content">${selectedCard(picked,state)}</div>`:
+ `<div class="mission-list"><div class="dock-heading"><small>Angers · ${hour(state.now)}</small>${tool('filter','Filtrer et trier les missions','filter')}</div>
  ${active?`<button class="tour-strip" data-act="select" data-id="${active.id}">${icon('flag',16)} Mission en cours · ${active.number} ${icon('chevron',16)}</button>`:''}
  ${state.tour?`<div class="saved-tour"><span>${icon('route',16)} Tournée · ${trip.steps.length} à faire</span>${act('plan','Ajuster',null,'text-btn')}${act('clear-tour','Quitter',null,'text-btn')}</div>${next?`<button class="next-stop" data-act="select" data-id="${next.id}">Prochaine étape · ${next.place} ${icon('chevron',15)}</button>`:''}`:''}
- <div class="mission-list">${list.map(m=>card(m,ui)).join('')||'<p class="empty">Aucune mission disponible pour ce filtre.</p>'}</div>`}
- </section></div></div>`;
+ ${list.map(m=>card(m,ui)).join('')||'<p class="empty">Aucune mission disponible pour ce filtre.</p>'}</div>`}
+ </div></section></div></div>`;
 }
 
 export {missionsPage};

@@ -9,7 +9,7 @@ import {initialState,advance,findMission,scenarios,review,available,originPoint}
 
 const root=document.querySelector('#app'),sheet=document.querySelector('#sheet'),announcement=document.querySelector('#announcement');
 const key='ponyops.angers.field.1';
-const defaults={type:'all',sort:'distance',status:'all',period:'day',mode:'list',selected:null,folded:false};
+const defaults={type:'all',sort:'distance',status:'all',period:'day',mode:'list',selected:null,folded:true};
 const ui={...defaults};
 let screen=null,trigger=null,view={zoom:1,x:0,y:0},drag=null;
 function read(){
@@ -31,7 +31,7 @@ function save(next){
  catch{say('Enregistrement local impossible. Libérez de l’espace ou autorisez le stockage pour poursuivre.');return false;}
 }
 function page(){return ['historique','revenus'].includes(location.hash.slice(1))?location.hash.slice(1):'missions';}
-function draw(){clearSlide();root.innerHTML=shell(page(),state,ui);syncMap();document.title=({missions:'Missions terrain',historique:'Historique',revenus:'Mes revenus'})[page()]+' · PonyOps';}
+function draw(){clearSlide();root.classList.toggle("missions-home",page()==="missions");root.innerHTML=shell(page(),state,ui);syncMap();document.title=({missions:'Missions terrain',historique:'Historique',revenus:'Mes revenus'})[page()]+' · PonyOps';}
 function sheetContent(){
  if(!screen)return '';
  if(screen.kind==='demo')return demoPanel(state,false);
@@ -58,7 +58,11 @@ sheet.addEventListener('close',()=>{
 });
 sheet.addEventListener('click',e=>{if(e.target!==sheet)return;const b=sheet.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)close()});
 function go(to){close();if(page()===to)draw();else location.hash=to;}
-window.addEventListener('hashchange',()=>{close();draw();window.scrollTo(0,0)});
+window.addEventListener('hashchange',()=>{
+ close();
+ if(page()==='missions'){ui.mode='list';ui.folded=true;ui.selected=null;}
+ draw();window.scrollTo(0,0);
+});
 window.addEventListener('storage',e=>{if(e.key!==key)return;state=read();if(ui.mode==='plan'&&!state.draft)ui.mode='list';draw();scheduleReviews();if(screen){if(screen.kind==='mission'&&state.history.some(h=>h.id===screen.id))display('receipt',screen.id);else display(screen.kind,screen.id);}});
 function apply(event,payload,stay=false){
  const current=read(),id=current.active?.id;
@@ -103,7 +107,7 @@ function syncMap(){
 function framePoint(p){
  const s=mapSize();if(!s)return;
  const dock=document.querySelector('#fieldDock').getBoundingClientRect();
- const mobile=window.innerWidth<=700;
+ const mobile=dock.right>s.width*.72;
  const x=mobile?s.width*.5:(dock.right+s.width)*.5;
  const y=mobile?Math.max(85,(dock.top+40)*.5):s.height*.48;
  const px=p[0]/100,py=p[1]/100;
@@ -123,7 +127,7 @@ function selectMission(id){
 function fold(value=!ui.folded){
  ui.folded=value;draw();
  if(ui.selected&&ui.mode==='detail')framePoint(findMission(ui.selected).point);
- root.querySelector('.dock-handle')?.focus({preventScroll:true});
+ root.querySelector('.dock-toggle')?.focus({preventScroll:true});
 }
 function planEdit(act,id){
  const current=read();
@@ -154,12 +158,16 @@ function planEdit(act,id){
   }
  }
  const pos=root.querySelector('.plan-scroll')?.scrollTop||0;
+ const panelPos=root.querySelector('#dockContent')?.scrollTop||0;
  draft.ids=draft.ids.filter(id=>available(current).some(m=>m.id===id));
  current.draft=draft;
  if(!save(current))return;
  ui.mode='plan';ui.folded=false;ui.selected=null;
  draw();
- if(!['plan','budget'].includes(act))root.querySelector('.plan-scroll').scrollTop=pos;
+ if(!['plan','budget'].includes(act)){
+  root.querySelector('.plan-scroll').scrollTop=pos;
+  root.querySelector('#dockContent').scrollTop=panelPos;
+ }
 }
 function setCaseAction(act,id){
  const current=read();
@@ -183,10 +191,22 @@ function scheduleReviews(){
   scheduleReviews();
  },delay+25);
 }
-window.addEventListener('resize',()=>{if(ui.selected&&ui.mode==='detail')framePoint(findMission(ui.selected).point);else syncMap();});
+function sizeMapToViewport(){
+ if(page()!=='missions')return;
+ if(ui.selected&&ui.mode==='detail')framePoint(findMission(ui.selected).point);
+ else syncMap();
+}
+if(!CSS.supports('height','100dvh')){
+ const setHeight=()=>root.style.setProperty('--field-viewport',(window.visualViewport?.height||window.innerHeight)+'px');
+ setHeight();
+ window.addEventListener('resize',setHeight);
+ window.visualViewport?.addEventListener('resize',setHeight);
+}
+if('ResizeObserver' in window)new ResizeObserver(sizeMapToViewport).observe(root);
+else window.addEventListener('resize',sizeMapToViewport);
 let handleDrag=null,suppressClick=false;
 root.addEventListener('pointerdown',e=>{
- const handle=e.target.closest('.dock-handle');
+ const handle=e.target.closest('.dock-toggle');
  if(handle){handleDrag={id:e.pointerId,y:e.clientY};handle.setPointerCapture(e.pointerId);return;}
  const box=e.target.closest('#mapWindow');if(!box||e.target.closest('button')||!e.isPrimary)return;
  drag={id:e.pointerId,x:e.clientX,y:e.clientY,dx:view.x,dy:view.y};box.setPointerCapture(e.pointerId);

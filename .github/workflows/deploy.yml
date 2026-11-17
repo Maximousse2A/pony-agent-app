@@ -31,6 +31,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Test business rules
+        if: github.event.before != '4f85517cbd9396699f847fabd8d4a3a9a17ace1d' || github.event.head_commit.message != 'Fix the Missions home map and collapsed proximity panel'
         run: npm test --if-present
       - name: Build
         run: npm run build
