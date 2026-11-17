@@ -22,25 +22,3 @@ jobs:
           path: visual-qa/*.jpg
           retention-days: 5
           if-no-files-found: error
-
-      - name: Print compact visual contact sheets for the review
-        run: |
-          python -m pip -q install Pillow==11.3.0
-          python - <<'PY'
-          import base64, io
-          from pathlib import Path
-          from PIL import Image
-          screens = Path('visual-qa')
-          for width in (390,1440):
-              size = (350,758) if width == 390 else (600,375)
-              sheet = Image.new('RGB',(size[0]*2,size[1]*2),'white')
-              for index,name in enumerate(('missions','depot','recu','revenus')):
-                  with Image.open(screens/f'{width}-{name}.jpg') as src:
-                      shot = src.resize(size,Image.Resampling.LANCZOS)
-                      sheet.paste(shot,((index%2)*size[0],(index//2)*size[1]))
-              buffer=io.BytesIO()
-              sheet.save(buffer,'JPEG',quality=58,optimize=True)
-              data=base64.b64encode(buffer.getvalue()).decode()
-              for pos in range(0,len(data),1500):
-                  print(f'VISUAL_{width}_{pos:07d} {data[pos:pos+1500]}')
-          PY

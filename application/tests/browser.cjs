@@ -70,6 +70,9 @@ async function run(){
    const expectedAmount=expected==='Rejetée'?9.50:opts.review||expected==='Approuvée'?9.50+(opts.battery?2.5:opts.shop?6:opts.charge?7:4):9.50;
    assert.equal(Number(amount.replace(/[^0-9,]/g,'').replace(',','.')),expectedAmount);
    await reset();assert.equal(await p.locator('.pin').count(),8);await fit();
+   if(opts.map){
+    await p.waitForFunction(()=>document.querySelector('#announcement').textContent==='');
+   }
    assert.deepEqual(errors,[]);
    evidence.push({viewport:[width,height],scenario,expected,approvedRevenue:amount,options:opts,http:result.status(),pageErrors:errors.length});
    console.log('PASS',width,height,scenario,expected,amount);
