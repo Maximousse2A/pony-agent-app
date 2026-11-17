@@ -15,7 +15,12 @@ function read(){
  return initialState();
 }
 let state=read();
-function say(message){announcement.textContent=message;}
+let noticeTimer;
+function say(message, temporary=false){
+ clearTimeout(noticeTimer);
+ announcement.textContent=message;
+ if(temporary)noticeTimer=setTimeout(()=>{announcement.textContent='';},3200);
+}
 function save(next){
  try{localStorage.setItem(key,JSON.stringify(next));state=next;return true;}
  catch{say('Enregistrement local impossible. Libérez de l’espace ou autorisez le stockage pour poursuivre.');return false;}
@@ -81,7 +86,7 @@ document.addEventListener('click',e=>{
   case 'recenter':view={zoom:1,x:0,y:0};syncMap();break;
   case 'mission':case 'receipt':case 'demo':case 'filter':display(act,id);break;
   case 'confirm-reset':display('reset');break;
-  case 'reset':if(save(initialState())){Object.assign(ui,{type:'all',sort:'distance',status:'all',period:'day'});view={zoom:1,x:0,y:0};go('missions');say('Démo réinitialisée.');}break;
+  case 'reset':if(save(initialState())){Object.assign(ui,{type:'all',sort:'distance',status:'all',period:'day'});view={zoom:1,x:0,y:0};go('missions');say('Démo réinitialisée.',true);}break;
   case 'close':close();break;
   case 'to-history':ui.status='all';go('historique');break;
   case 'status':ui.status=id;draw();break;
@@ -99,7 +104,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',async e=>{
  const el=e.target;
- if(el.name==='scenario'&&scenarios[el.value]){const current=read();current.scenario=el.value;if(save(current))say('Scénario enregistré.');return;}
+ if(el.name==='scenario'&&scenarios[el.value]){const current=read();current.scenario=el.value;if(save(current))say('Scénario enregistré.',true);return;}
  if(['type','sort'].includes(el.name)){ui[el.name]=el.value;draw();return;}
  if(el.id!=='photoInput'||!el.files?.[0])return;
  const missionId=state.active?.id;
