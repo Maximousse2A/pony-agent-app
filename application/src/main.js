@@ -9,10 +9,12 @@ import {reportDate,shiftDay,validDay} from './reporting.js';
 import {shell} from './pages.js';
 import {missionSheet,receipt,demoPanel,filterPanel} from './sheets.js';
 import {coordinates,initialState,advance,findMission,scenarios,review,available,originPoint} from './domain.js';
+import {requireDemoLogin} from './login.js';
 
+function startApplication(){
 const root=document.querySelector('#app'),sheet=document.querySelector('#sheet'),announcement=document.querySelector('#announcement');
 const key='ponyops.angers.field.1';
-const defaults={priority:'all',location:null,type:'all',sort:'distance',status:'all',period:'day',reportDay:null,mode:'list',selected:null,folded:true};
+const defaults={priority:'all',location:null,type:'all',sort:'smart',status:'all',period:'day',reportDay:null,mode:'list',selected:null,folded:true};
 const ui={...defaults};
 let screen=null,trigger=null;
 function read(){
@@ -52,6 +54,7 @@ function sheetContent(){
  if(!screen)return '';
  if(screen.kind==='demo')return demoPanel(state,false);
  if(screen.kind==='reset')return demoPanel(state,true);
+ if(screen.kind==='reset-evening')return demoPanel(state,'evening');
  if(screen.kind==='filter')return filterPanel(ui);
  if(screen.kind==='receipt'){const h=state.history.find(x=>x.id===screen.id);return h?receipt(h):'';}
  const m=findMission(screen.id);return m && m.id===state.active?.id?missionSheet(m,state):'';
@@ -98,7 +101,10 @@ function acceptMission(id,resume=false){
   if(current.active?.id===id){state=current;display('mission',id);}
   return;
  }
- if(!current.active&&advance(current,'take',id)&&save(current)){
+ const estimate=itinerary(current,{ids:[id],budget:480}).steps[0];
+ if(!current.active&&advance(current,'take',id)){
+  if(estimate)current.active.expectedFinishAt=estimate.finishAt;
+  if(!save(current))return;
   if(!ui.folded){ui.selected=id;ui.mode='detail';}
   draw();display('mission',id);
  }
@@ -148,8 +154,8 @@ function planEdit(act,id){
  else if(act==='confirm-tour'){
   const trip=itinerary(current,draft);
   if(!trip.valid||trip.steps.length!==draft.ids.length){say('La disponibilité a changé. Ajustez la proposition.');return;}
-  current.tour={budget:draft.budget,ids:[...draft.ids]};current.draft=null;
-  if(save(current)){ui.mode='list';ui.selected=null;ui.type='all';ui.priority='all';ui.folded=false;draw();say('Tournée enregistrée. Les missions restent libres.',true);}
+  current.tour={budget:draft.budget,ids:[...draft.ids],strategy:'smart'};current.draft=null;
+  if(save(current)){ui.mode='list';ui.selected=null;ui.type='all';ui.priority='all';ui.sort='smart';ui.folded=false;draw();say('Tournée Smart enregistrée. Acceptez chaque mission pour la réaliser.',true);}
   return;
  }else{
   const i=draft.ids.indexOf(id);
@@ -233,6 +239,8 @@ document.addEventListener('click',e=>{
   case 'recenter':locate();break;
   case 'mission':case 'receipt':case 'demo':case 'filter':display(act,id);break;
   case 'confirm-reset':display('reset');break;
+  case 'confirm-evening':display('reset-evening');break;
+  case 'reset-evening':if(save(initialState('evening'))){clearTimeout(caseTimer);Object.assign(ui,defaults);go('missions');planEdit('plan');say('Démo du soir chargée : préparation de demain matin.',true);}break;
   case 'reset':if(save(initialState())){clearTimeout(caseTimer);Object.assign(ui,defaults);go('missions');say('Démo réinitialisée.',true);}break;
   case 'close':close();break;
   case 'to-history':{
@@ -283,3 +291,6 @@ draw();
 if(page()==='missions'&&state.active)display('mission',state.active.id);
 navigator.permissions?.query({name:'geolocation'}).then(p=>{if(p.state==='granted'&&page()==='missions')locate(false);}).catch(()=>{});
 scheduleReviews();
+}
+
+requireDemoLogin(document.querySelector('#app'),startApplication);

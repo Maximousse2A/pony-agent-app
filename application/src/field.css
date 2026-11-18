@@ -72,7 +72,7 @@ body:has(.field-main) #announcement { pointer-events:none }
 .vehicle-head>b { white-space:nowrap; color:var(--purple); font-size:19px }
 .vehicle-trip { display:grid; gap:4px; font-size:14px }
 .vehicle-trip strong { display:flex; align-items:center; gap:6px }
-.vehicle-trip>span,.vehicle-facts { color:var(--muted); font-size:13px }
+.vehicle-trip>span:not(.dispatch-priority),.vehicle-facts { color:var(--muted); font-size:13px }
 .vehicle-facts summary { min-height:40px }
 .vehicle-facts p { margin:0 0 8px }
 .accept-slide { --slide:0; position:relative; isolation:isolate; display:grid; place-items:center; background:var(--royal); color:white; height:54px; border-radius:30px; overflow:hidden; user-select:none }
@@ -199,4 +199,54 @@ body:has(.field-main) #announcement { pointer-events:none }
  .map-credit { top:calc(var(--edge-top) + 108px) }
  .tile-status { left:auto; right:var(--edge-right); top:calc(var(--edge-top) + 131px); max-width:40% }
  .folded .field-dock { max-height:calc(100dvh - 135px) }
+}
+
+/* Operational instructions remain inside the existing, scrollable mission dock. */
+.smart-note,.smart-overview { background:#f3f0fa; border-left:3px solid var(--royal); padding:12px; margin:10px 0; color:var(--purple); border-radius:0 10px 10px 0 }
+.smart-overview { margin:4px 14px 10px }
+.smart-note p,.smart-overview p { font-size:13px; line-height:1.45; margin:5px 0 }
+.smart-note small,.smart-overview small { font-size:12px; color:var(--muted) }
+.smart-purpose,.stage-list .smart-purpose { color:var(--royal); font-size:13px; line-height:1.4; margin:4px 0 8px }
+.smart-needs { margin:10px 0; border-bottom:1px solid var(--border); padding-bottom:8px }
+.smart-needs summary { min-height:36px; padding-top:7px; color:var(--purple); font-size:14px; font-weight:650; cursor:pointer }
+.smart-needs p { font-size:13px; line-height:1.5; margin:7px 0 }
+
+/* Keep the next action beside the mission, leaving the map in view. */
+.near-preview { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding:2px 14px 12px }
+.near-summary { min-width:0; gap:3px; padding:0 }
+.near-summary>span { justify-content:flex-start }
+.near-summary>small { text-align:left }
+.near-preview .accept-button { color:white; background:var(--royal); border:0; padding:0 14px }
+.near-preview .smart-purpose { margin:0 }
+.smart-overview { background:none; border:0; margin:0; padding:0 16px; border-radius:0; border-bottom:1px solid var(--border) }
+.smart-overview summary { padding:12px 0; font-size:14px }
+.smart-overview summary b { float:right; font-weight:550; color:var(--muted) }
+.smart-overview>div { padding-bottom:12px }
+.plan-heading { padding:12px 16px }
+.trip-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:6px 0 0; padding:8px 0 }
+.trip-metrics div+div { border-left:1px solid var(--border); padding-left:10px }
+.trip-metrics strong { line-height:1.35; font-size:clamp(16px,4.5vw,21px) }
+.route-time { display:flex; gap:5px; align-items:center; margin:4px 0 12px; font-size:12px; color:var(--muted) }
+.stage-list .smart-purpose { margin:2px 0 0 }
+.smart-needs ul { padding-left:18px; font-size:13px }
+.smart-needs li+li { margin-top:6px }
+.sheet-content .notice.refused { color:#81233e; background:#fbe8ed }
+.sheet-content .receipt-result { flex-direction:row; align-items:center; justify-content:space-between; padding:16px; gap:12px }
+.receipt-result strong,.receipt-result small { display:block }
+.receipt-result small { color:var(--muted); font-size:13px }
+.sheet-content .receipt-result>.status { flex:none }
+.sheet-content .receipt-result>.status.approved { color:#166647 }
+.sheet-content .receipt-result>.status.pending { color:#785212 }
+.sheet-content .receipt-result>.status.rejected { color:#982b45 }
+.receipt-times { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:8px 0 16px }
+.receipt-times .fact { display:grid; gap:4px; align-content:start; border:0; padding:2px 0 }
+.receipt-times dt { font-size:13px }
+.receipt-times dd { text-align:left; max-width:none; overflow-wrap:anywhere; font-size:16px; color:var(--purple) }
+.appeal-box p:first-child { margin:0; font-size:14px }
+.appeal-box { background:transparent; padding:0; border:0 }
+.gps-meta details summary { padding:0 }
+@media(max-width:350px) {
+ .trip-metrics { gap:4px }
+ .trip-metrics div+div { padding-left:6px }
+ .near-preview { gap:6px }
 }

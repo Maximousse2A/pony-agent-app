@@ -52,7 +52,7 @@ test('Supervision simulée · décision unique, conservation du motif initial',(
  }
 });
 test('Les huit missions peuvent être réalisées et le reset restaure la tournée',()=>{
- const s=initialState();for(const m of missions){for(const e of ['take','arrive','scan','unlock','work',...(requiresDeposit(m)?['arrive-depot']:[]),'photo','deposit'])assert.equal(advance(s,e,e==='photo'?'sample':m.id),true);}
+ const s=initialState();for(const m of available(s)){for(const e of ['take','arrive','scan','unlock','work',...(requiresDeposit(m)?['arrive-depot']:[]),'photo','deposit'])assert.equal(advance(s,e,e==='photo'?'sample':m.id),true);}
  assert.equal(available(s).length,0);const fresh=initialState();assert.equal(available(fresh).length,8);assert.equal(fresh.now,initialTime);assert.equal(fresh.history.length,6);assert.equal(fresh.active,null);
 });
 

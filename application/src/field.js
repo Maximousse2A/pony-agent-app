@@ -1,6 +1,7 @@
+import {missionPurpose,objectiveLabel,smartProgress,uncoveredNeeds} from './smart.js';
 import {fieldMissions,priorities} from './navigation.js';
 import {icon,typeMark} from './icons.js';
-import {available,findMission,types,tariff,day,hour,deadline,distance,money,originPoint} from './domain.js';
+import {available,findMission,types,tariff,day,hour,deadline,distance,money} from './domain.js';
 import {itinerary,windows,duration} from './tours.js';
 
 const act=(action,text,ico,css='small-btn',id='')=>`<button class="${css}" data-act="${action}" data-id="${id}">${ico?icon(ico,17):''}${text}</button>`;
@@ -14,18 +15,20 @@ function acceptControls(m,active=false){
  return `<div class="accept-controls">${slider(m,active)}${act(active?'resume':'take',active?'Reprendre':'Accepter',null,'accept-button',m.id)}</div>`;
 }
 function compactMission(nearest,active){
- if(!nearest&&!active)return '<p class="near-empty">Aucune mission disponible pour ce filtre.</p>';
- return `<div class="near-preview">${nearest?`<button class="near-summary" data-act="select" data-id="${nearest.id}"><span><b>${types[nearest.type].name}</b><strong>${money(tariff(nearest))}</strong></span><span><small>${distance(nearest.metres)} · ${nearest.place}</small>${badge(nearest)}</span></button>`:''}
- ${active?act('resume','Reprendre · '+active.number,'flag','small-btn',active.id):acceptControls(nearest)}</div>`;
+ const m=active||nearest;
+ if(!m)return '<p class="near-empty">Aucune mission pour ces filtres.</p>';
+ return `<div class="near-preview"><button class="near-summary" data-act="select" data-id="${m.id}"><span><b>${types[m.type].name}</b></span><small>${m.place} · ${distance(m.metres)}</small><span>${badge(m)}<strong>${money(tariff(m))}</strong></span>${m.smart?`<small class="smart-purpose">${missionPurpose(m)}</small>`:''}</button>
+ ${act(active?'resume':'take',active?'Reprendre':'Accepter',null,'accept-button',m.id)}</div>`;
 }
 function card(m,ui){
- return `<button class="mission-row ${ui.selected===m.id?'selected-row':''}" data-act="select" data-id="${m.id}" aria-pressed="${ui.selected===m.id}">${typeMark(m.type)}<span class="row-main"><strong>${types[m.type].name}</strong><span>${m.place}</span><small>${m.number} · ${distance(m.metres)} · ${hour(deadline(m))}</small></span><span class="row-end"><b>${money(tariff(m))}</b>${badge(m)}</span></button>`;
+ return `<button class="mission-row ${ui.selected===m.id?'selected-row':''}" data-act="select" data-id="${m.id}" aria-pressed="${ui.selected===m.id}">${typeMark(m.type)}<span class="row-main"><strong>${types[m.type].name}</strong><span>${m.place}</span>${m.smart?`<small class="smart-purpose">Vers ${m.destination} · avant ${hour(m.smart.deliverBy)}</small>`:''}<small>${distance(m.metres)} · à prendre avant ${hour(deadline(m))}</small></span><span class="row-end"><b>${money(tariff(m))}</b>${badge(m)}</span></button>`;
 }
 function selectedCard(m,state){
  const active=state.active?.id===m.id,blocked=state.active&&!active;
  return `<header class="vehicle-head">${typeMark(m.type,true)}<div><small>${m.vehicle} ${m.number} · ${m.zone}</small><h2 tabindex="-1">${types[m.type].name}</h2></div><b>${money(tariff(m))}</b></header>
  <div class="vehicle-trip"><strong>${icon('pin',16)} ${m.place}</strong><span>${m.reason}</span>${badge(m)}</div>
- <details class="vehicle-facts"><summary>Créée le ${day(m.created)} à ${hour(m.created)} · avant ${hour(deadline(m))}</summary><p>${m.type==='battery'?'Intervention sur place':'Dépôt prévu'} · ${m.destination}<br>Distance indicative · ${distance(m.metres)}</p></details>
+ ${m.smart?`<section class="smart-note"><strong>${missionPurpose(m)}</strong><p>${objectiveLabel(m.smart)}</p></section>`:''}
+ <details class="vehicle-facts"><summary>À prendre avant ${hour(deadline(m))} · ${distance(m.metres)}</summary><p>Créée le ${day(m.created)} à ${hour(m.created)}<br>${m.type==='battery'?'Intervention sur place':'Dépôt prévu'} · ${m.destination}${m.smart?'<br>'+m.smart.reason:''}</p></details>
  ${blocked?`<p class="hint">Terminez d’abord la mission en cours.</p>${act('select','Mission en cours','flag','small-btn',state.active.id)}`:acceptControls(m,active)}`;
 }
 function routeEditor(state){
@@ -33,21 +36,29 @@ function routeEditor(state){
  if(!plan)return '';
  const trip=itinerary(state,plan);
  const addable=available(state).filter(m=>!plan.ids.includes(m.id));
- const empty=!trip.steps.length,over=trip.minutes>plan.budget,late=trip.steps.some(s=>s.late);
- return `<div class="plan-heading"><h2>Proposition de tournée</h2><span class="sim">IA simulée</span></div>
- <div class="time-choices" aria-label="Temps disponible">${windows.map(([v,l])=>`<button data-act="budget" data-id="${v}" aria-pressed="${v===plan.budget}">${l}</button>`).join('')}</div>
+ const empty=!trip.steps.length,over=trip.minutes>plan.budget,late=trip.steps.some(s=>s.late||s.targetLate);
+ const needs=uncoveredNeeds(state,trip.steps);
+ return `<div class="plan-heading"><h2>${state.mode==='evening'?'Préparer demain à 7 h 30':'Ma tournée'}</h2><span class="sim">Simulation</span></div>
+ <div class="time-choices" role="group" aria-label="Temps disponible">${windows.map(([v,l])=>`<button data-act="budget" data-id="${v}" aria-pressed="${v===plan.budget}">${l}</button>`).join('')}</div>
  <div class="plan-scroll">
- <div class="trip-metrics"><div><small>Durée estimée</small><strong>${duration(trip.minutes)}</strong></div><div><small>Gains estimés</small><strong>${money(trip.fee)}</strong></div></div>
- <p class="hint">${trip.drive} min de trajet · ${trip.minutes-trip.drive} min d’intervention${state.active?' · départ après la mission en cours':''}</p>
- ${trip.steps.length?'<div id="routePreview" class="route-inset" role="img" aria-label="Itinéraire indicatif des étapes de Pony Express"></div>':''}
- <ol class="stage-list">${trip.steps.map(({m,minutes,fee,late},i)=>`<li><b class="stage-index">${i+1}</b><div><strong>${m.place}</strong><small>${types[m.type].short} · ${minutes} min · ${money(fee)}</small>${m.destination!==m.place?`<small>Dépôt · ${m.destination}</small>`:''}${late?'<small class="conflict">Fin prévue après l’échéance</small>':''}</div><div class="stage-controls">${tool('up','Avancer '+m.place,'up',m.id,i===0)}${tool('down','Reculer '+m.place,'down',m.id,i===trip.steps.length-1)}${tool('remove','Retirer '+m.place,'cross',m.id)}</div></li>`).join('')}</ol>
+ <div class="trip-metrics"><div><small>Dépôts ciblés</small><strong>${trip.targeted} / ${available(state).filter(m=>m.smart).length}</strong></div><div><small>Durée estimée</small><strong>${duration(trip.minutes)}</strong></div><div><small>Tarif potentiel</small><strong>${money(trip.fee)}</strong></div></div>
+ <p class="route-time">${icon('clock',15)} Départ ${hour(trip.departure)}${state.active?' après la mission en cours':''} · Fin de service 20 h</p>
+ <details class="smart-needs"><summary>Besoins non couverts <span class="count">${needs.length}</span></summary><ul>${needs.map(text=>`<li>${text}</li>`).join('')}</ul></details>
+ ${trip.steps.length?'<div id="routePreview" class="route-inset" role="img" aria-label="Itinéraire indicatif des étapes de Pony Smart"></div>':''}
+ <ol class="stage-list">${trip.steps.map(({m,minutes,late,targetLate,finishAt},i)=>`<li><b class="stage-index">${i+1}</b><div><strong>${m.place}</strong><small>${types[m.type].short} · ${minutes} min · fin ${hour(finishAt)}</small>${m.destination!==m.place?`<small class="${m.smart?'smart-purpose':''}">${icon('route',13)} ${m.destination}${m.smart?' avant '+hour(m.smart.deliverBy):''}</small>`:''}${m.priority===3?badge(m):''}${late?'<small class="conflict">Prise en charge après l’échéance</small>':''}${targetLate?'<small class="conflict">Objectif de dépôt hors délai</small>':''}</div><div class="stage-controls">${tool('up','Avancer '+m.place,'up',m.id,i===0)}${tool('down','Reculer '+m.place,'down',m.id,i===trip.steps.length-1)}${tool('remove','Retirer '+m.place,'cross',m.id)}</div></li>`).join('')}</ol>
  ${empty?'<p>Aucune étape retenue pour cette durée.</p>':''}
  ${addable.length?`<label class="add-step">Ajouter une étape<select name="add-stop"><option value="">Choisir une mission</option>${addable.map(m=>`<option value="${m.id}">${m.place} · ${types[m.type].short}</option>`).join('')}</select></label>`:''}
+ ${trip.afterShift?'<p class="conflict">Fin après 20 h ou départ hors service. Réduisez la tournée.</p>':''}
  ${over?`<p class="conflict">La tournée dépasse la durée choisie de ${trip.minutes-plan.budget} min.</p>`:''}${late?'<p class="conflict">Réordonnez ou retirez les étapes hors délai.</p>':''}
+
+ <details class="smart-needs"><summary>Critères et estimations</summary><p>Ordre de priorité : interventions critiques, dépôts ciblés, autres missions. À couverture égale, la tournée la plus courte passe en premier, puis la mieux rémunérée.</p><p>${trip.drive} min de trajet et ${trip.minutes-trip.drive} min sur place. Tarifs sous réserve de validation.</p><p>La présence au créneau cible reste à vérifier. Dans le cas étudié, 80 % des véhicules déposés à 20 h au campus ou à l’hôpital y sont encore à 7 h 30.</p></details>
+ ${state.mode!=='evening'?act('confirm-evening','Préparer demain matin','route','small-btn'):''}
  </div><div class="plan-footer"><button class="btn primary" data-act="confirm-tour" ${trip.valid?'':'disabled'}>${icon('check',17)} Confirmer la tournée</button>${act('leave-plan','Retour aux missions',null,'text-btn')}</div>`;
 }
 function missionsPage(state,ui){
  const {list,nearest,withDistance}=fieldMissions(state,ui);
+ const progress=smartProgress(state);
+ const listTitle=ui.sort==='smart'?'Priorités terrain':'À proximité';
  const active=state.active&&withDistance(findMission(state.active.id));
  const editing=ui.mode==='plan'&&!!state.draft;
  const trip=itinerary(state,editing?state.draft:state.tour);
@@ -61,17 +72,18 @@ function missionsPage(state,ui){
  <div class="map-locality">${icon('pin',16)}<b>Angers</b><span>· ${ui.location?'Ma position GPS':'Position de démo'}</span></div>
  <div class="map-utilities">${tool('zoom-in','Agrandir la carte','plus')}${tool('zoom-out','Réduire la carte','minus')}${tool('recenter','Utiliser ma position','locate')}</div>
  <div class="dock-zone">
- <button class="bolt" data-act="${editing&&!folded?'fold':'plan'}" aria-expanded="${editing&&!folded}" aria-label="${editing&&!folded?'Réduire Pony Express':'Ouvrir Pony Express'}">${icon('bolt',21)}<span>Pony Express</span></button>
+ <button class="bolt" data-act="${editing&&!folded?'fold':'plan'}" aria-expanded="${editing&&!folded}" aria-label="${editing&&!folded?'Réduire Pony Smart':'Ouvrir Pony Smart'}">${icon('bolt',21)}<span>Pony Smart</span></button>
  <section class="field-dock" id="fieldDock" aria-label="Panneau de missions">
  <button type="button" class="dock-toggle" data-act="fold" aria-expanded="${!folded}" aria-controls="dockContent">
- <strong>${editing?'Pony Express':detail&&!folded?picked.number:'À proximité'}${!editing&&!detail?` <span class="count">${list.length}</span>`:''}</strong>
+ <strong>${editing?'Pony Smart':detail&&!folded?picked.number:listTitle}${!editing&&!detail?` <span class="count">${list.length}</span>`:''}</strong>
  <span class="dock-command">${folded?'Ouvrir':'Réduire'} ${icon(folded?'up':'down',17)}</span></button>
  ${folded&&!editing?compactMission(nearest,active):''}
  <div id="dockContent" class="dock-content" ${folded?'hidden':''}>
- ${folded?'':editing?routeEditor(state):detail?`<div class="detail-tools">${act('list','À proximité','back','text-btn')}</div><div class="selected-content">${selectedCard(picked,state)}</div>`:
- `<div class="mission-list"><div class="dock-heading"><small>Angers · ${hour(state.now)}</small>${tool('filter','Filtrer et trier les missions','filter')}</div>
+ ${folded?'':editing?routeEditor(state):detail?`<div class="detail-tools">${act('list','Toutes les missions','back','text-btn')}</div><div class="selected-content">${selectedCard(picked,state)}</div>`:
+ `<div class="mission-list"><div class="dock-heading"><small>${icon('clock',15)} ${hour(state.now)}</small>${tool('filter','Filtrer et trier les missions','filter')}</div>
+ <details class="smart-overview"><summary>Dépôts ciblés <b>${progress.remaining} à faire</b></summary><div><p>${progress.approved} approuvés · ${progress.pending} en attente · ${progress.rejected} refusés</p><small>Présence au créneau cible non mesurée.</small></div></details>
  ${active?`<button class="tour-strip" data-act="select" data-id="${active.id}">${icon('flag',16)} Mission en cours · ${active.number} ${icon('chevron',16)}</button>`:''}
- ${state.tour?`<div class="saved-tour"><span>${icon('route',16)} Tournée · ${trip.steps.length} à faire</span>${act('plan','Ajuster',null,'text-btn')}${act('clear-tour','Quitter',null,'text-btn')}</div>${next?`<button class="next-stop" data-act="select" data-id="${next.id}">Prochaine étape · ${next.place} ${icon('chevron',15)}</button>`:''}`:''}
+ ${state.tour?`<div class="saved-tour"><span>${icon('route',16)} Pony Smart · ${trip.steps.length} à faire</span>${act('plan','Ajuster',null,'text-btn')}${act('clear-tour','Quitter',null,'text-btn')}</div>${next?`<button class="next-stop" data-act="select" data-id="${next.id}">Prochaine étape · ${next.place} ${icon('chevron',15)}</button>`:''}`:''}
  ${list.map(m=>card(m,ui)).join('')||'<p class="empty">Aucune mission disponible pour ce filtre.</p>'}</div>`}
  </div></section></div></div>`;
 }

@@ -1,5 +1,7 @@
 import {available, coordinates, deadline, originPoint} from './domain.js';
 
+import {compareSmart} from './smart.js';
+
 export const priorities = ['Faible', 'Normale', 'Haute', 'Critique'];
 
 export function directions([lat, lng]) {
@@ -20,7 +22,8 @@ export function fieldMissions(state, ui) {
   const near = all.filter(m => (ui.type === 'all' || m.type === ui.type) &&
     (ui.priority === 'all' || String(m.priority) === ui.priority)).sort((a,b) => a.metres-b.metres);
   const list = [...near];
+  if (ui.sort === 'smart') list.sort(compareSmart);
   if (ui.sort === 'priority') list.sort((a,b) => b.priority-a.priority || a.metres-b.metres);
   if (ui.sort === 'time') list.sort((a,b) => deadline(a)-deadline(b) || a.metres-b.metres);
-  return {list, nearest: near[0], position, withDistance};
+  return {list, nearest: ui.sort==='smart'?list[0]:near[0], position, withDistance};
 }
