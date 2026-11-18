@@ -60,7 +60,7 @@ function earningsPage(state,ui){
   const caption=range.start===range.end?formatted(range.start):`Du ${formatted(range.start)} au ${formatted(range.end)}`;
   return intro('Mes revenus')+calendar(selected,state.history)+
     `<div class="report-period"><div class="tabs period" role="group" aria-label="Période des revenus">${filterButtons(periods,ui.period,'period')}</div>${range.start===range.end?'':`<span>${caption}</span>`}</div>
-    <div class="earn-grid"><section class="earn-hero">${icon('wallet',32)}<p>Revenus approuvés</p><strong>${money(t.approved)}</strong><span>${missionCount(approved)} · montants simulés</span></section>
+    <div class="earn-grid"><section class="earn-hero">${icon('wallet',32)}<p>Revenus approuvés</p><strong>${money(t.approved)}</strong><span>${missionCount(approved)}</span></section>
     <section class="balances"><div><span>${tag('pending')}<small>${missionCount(count('pending'))}</small></span><b>${money(t.pending)}</b></div>
     <div><span>${tag('rejected')}<small>${missionCount(count('rejected'))} · ${money(t.rejected)} de tarifs refusés</small></span><b>${money(0)}</b></div></section></div>
     <section class="ledger"><h2>Missions <span class="count">${t.count}</span></h2>${records.map(h=>historyRow(h,range.start!==range.end)).join('')||'<p class="empty">Aucune mission terminée sur cette période.</p>'}</section>`;

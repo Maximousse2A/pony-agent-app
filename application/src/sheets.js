@@ -83,9 +83,9 @@ function receipt(h){
    <div class="receipt-result"><div><small>${impact[h.status]}</small><strong>${money(h.status==='rejected'?0:h.amount)}</strong></div>${tag(h.status)}</div>
    ${decision}${casePanel(h)}
    ${h.status==='pending'?`<details><summary>Simuler la décision de supervision</summary><div class="photo-actions">${btn('review-ok','Approuver','check','secondary',h.id)}${btn('review-no','Rejeter','cross','secondary',h.id)}</div></details>`:''}
-   ${h.smart?`<section class="smart-note"><strong>${objectiveLabel(h.smart)}</strong><p>Dépôt soumis ${h.time<=h.smart.deliverBy?'dans le créneau':'hors créneau'}. ${h.status==='approved'?'Présence à l’heure cible non mesurée.':h.status==='rejected'?'Dépôt refusé, objectif non confirmé.':'Contribution en attente de validation.'}</p></section>`:''}
+   ${h.smart?`<section class="smart-note"><strong>${objectiveLabel(h.smart)}</strong><p>Déposé ${h.time<=h.smart.deliverBy?'dans le créneau':'hors créneau'}.</p></section>`:''}
    ${measurements}
-   <details><summary>Détails de la mission</summary><dl>${line(onSite?'Intervention sur place':'Dépôt',h.place)}${line('Tarif prévu',money(h.amount))}${h.gps?line('GPS simulé',h.gps.lat+', '+h.gps.lng+' · ± '+h.gps.accuracy+' m'):''}</dl><p class="hint">Décision et rémunération simulées.</p></details>
+   <details><summary>Détails de la mission</summary><dl>${line(onSite?'Intervention sur place':'Dépôt',h.place)}${line('Tarif prévu',money(h.amount))}${h.gps?line('GPS simulé',h.gps.lat+', '+h.gps.lng+' · ± '+h.gps.accuracy+' m'):''}</dl></details>
    ${photo?`<details><summary>${onSite?'Photo de l’intervention':'Photo du dépôt'}</summary><img class="receipt-photo" src="${photo}" alt="Photo de l’intervention"></details>`:''}
    ${h.initialReason?`<details><summary>Décision de supervision · ${hour(h.reviewedAt)}</summary><p>${h.initialReason}</p></details>`:''}`,
 

@@ -37,7 +37,7 @@ missions.push(...[
 })));
 missions.find(m=>m.id==='AG-2048').smart={targetAt:Date.parse('2026-11-16T11:00:00+01:00'),
   deliverBy:Date.parse('2026-11-16T11:00:00+01:00'),quantity:1,
-  reason:'Renfort de journée à la gare. Cette mission ne couvre pas le besoin de 7 h 30 déjà passé.'};
+  reason:'Renfort de journée à la gare.'};
 export const findMission = id => missions.find(m => m.id === id);
 export const tariff = m => types[m.type].cents[m.zone === 'Centre-ville' ? 0 : 1];
 export const deadline = m => pickupDeadline(m.created,types[m.type].hours);

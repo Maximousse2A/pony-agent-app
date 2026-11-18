@@ -44,11 +44,10 @@ function routeEditor(state){
  const needs=uncoveredNeeds(state,plan,trip);
  const reviews=state.history.filter(h=>h.smart&&['pending','rejected'].includes(h.status));
  const activeTarget=state.active&&findMission(state.active.id)?.smart&&findMission(state.active.id);
- return `<div class="plan-heading"><h2>${state.mode==='evening'?'Préparer demain à 7 h 30':'Tournée proposée'}</h2><span class="sim">Simulation</span></div>
+ return `<div class="plan-heading"><h2>${state.mode==='evening'?'Préparer demain à 7 h 30':'Tournée proposée'}</h2></div>
  <div class="plan-scroll">
  <div class="trip-metrics"><div><small>Dépôts planifiés</small><strong>${trip.targeted} / ${serviceMissions(state).filter(m=>m.smart).length}</strong></div><div><small>Trajet et intervention</small><strong>${duration(trip.minutes-trip.waiting)}</strong></div><div><small>Tarif potentiel</small><strong>${money(trip.fee)}</strong></div></div>
- <p class="route-time">${icon('clock',15)} Départ ${hour(trip.departure)}${state.active?' après la mission en cours':''} · ${trip.steps.length?'Fin prévue '+hour(trip.departure+trip.minutes*60000)+' · ':''}Service jusqu’à 20 h</p>
- <details class="smart-needs"><summary>Gare · 7 h 30 demain · à organiser</summary><p>Le service commence à 8 h. Seuls 40 % des véhicules déposés à la gare à 20 h y sont encore à 7 h 30. La couverture du matin reste à convenir avec le prestataire.</p></details>
+ <p class="route-time">${icon('clock',15)} Départ ${hour(trip.departure)}${state.active?' après la mission en cours':''}${trip.steps.length?' · Fin prévue '+hour(trip.departure+trip.minutes*60000):''}</p>
  ${needs.length?`<details class="smart-needs"><summary>Missions hors tournée <span class="count">${needs.length}</span></summary>${needs.map(text=>`<p>${text}</p>`).join('')}</details>`:''}
  ${reviews.length?`<details class="smart-needs"><summary>Dépôts à suivre <span class="count">${reviews.length}</span></summary>${reviews.map(h=>`<p>${findMission(h.id)?.destination||'Dépôt ciblé'} · ${h.status==='rejected'?'dépôt refusé, besoin à réexaminer':'preuve en attente de validation'}</p>`).join('')}</details>`:''}
  ${activeTarget?`<p class="route-time">Dépôt en cours · ${activeTarget.destination}</p>`:''}
