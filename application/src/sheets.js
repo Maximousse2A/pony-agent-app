@@ -1,3 +1,4 @@
+import {nextFieldMission} from './tours.js';
 import {objectiveLabel,missionPurpose} from './smart.js';
 import {directions,priorities} from './navigation.js';
 import {coordinates,requiresDeposit,depositPoint} from './domain.js';
@@ -67,7 +68,16 @@ function casePanel(h){
 }
 
 
-function receipt(h){
+function receipt(h,missionState=null){
+ let action=btn('to-history','Voir l’historique','history','primary');
+ if(missionState){
+  const next=nextFieldMission(missionState);
+  const future=next&&next.created>missionState.now;
+  let label=next?'Mission suivante':'Retour aux missions';
+  if(future)label='Simuler le départ à '+hour(next.created);
+  if(missionState.active)label='Reprendre la mission';
+  action=btn(future?'wait-receipt':'next-receipt',label,'arrow','primary',next?.id||'');
+ }
  const onSite=!requiresDeposit(h);
  const impact={approved:'Revenu approuvé',pending:'Montant en attente',rejected:'Montant rémunéré'};
  const photo=h.photo==='sample'?sample(h.vehicle):h.photo;
@@ -89,7 +99,7 @@ function receipt(h){
    ${photo?`<details><summary>${onSite?'Photo de l’intervention':'Photo du dépôt'}</summary><img class="receipt-photo" src="${photo}" alt="Photo de l’intervention"></details>`:''}
    ${h.initialReason?`<details><summary>Décision de supervision · ${hour(h.reviewedAt)}</summary><p>${h.initialReason}</p></details>`:''}`,
 
- btn('to-history','Voir l’historique','history','primary'));
+ action);
 }
 function demoPanel(state,reset){
  if(reset==='evening')return wrap('Démo du soir','Préparer demain matin ?',`<p>Charger ce scénario réinitialise les missions, les photos et les revenus de cette démo sur cet appareil.</p><p>Il est 19 h. Deux consignes pilotes fictives ciblent un campus et l’hôpital avant 20 h. Le besoin de la gare à 7 h 30 reste non couvert.</p>`,btn('reset-evening','Réinitialiser et charger le soir','route')+btn('close','Annuler',null,'secondary'));

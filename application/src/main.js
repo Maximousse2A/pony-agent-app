@@ -4,7 +4,7 @@ import {fieldMissions} from './navigation.js';
 import './field.css';
 import {bindSlider} from './slider.js';
 import {appeal,resolveAI,resolveSupport} from './appeals.js';
-import {itinerary,propose} from './tours.js';
+import {itinerary,propose,nextFieldMission} from './tours.js';
 import {reportDate,shiftDay,validDay} from './reporting.js';
 import {shell} from './pages.js';
 import {missionSheet,receipt,demoPanel,filterPanel} from './sheets.js';
@@ -56,7 +56,7 @@ function sheetContent(){
  if(screen.kind==='reset')return demoPanel(state,true);
  if(screen.kind==='reset-evening')return demoPanel(state,'evening');
  if(screen.kind==='filter')return filterPanel(ui);
- if(screen.kind==='receipt'){const h=state.history.find(x=>x.id===screen.id);return h?receipt(h):'';}
+ if(screen.kind==='receipt'){const h=state.history.find(x=>x.id===screen.id);return h?receipt(h,page()==='missions'?state:null):'';}
  const m=findMission(screen.id);return m && m.id===state.active?.id?missionSheet(m,state):'';
 }
 function display(kind,id,focus=true){
@@ -252,6 +252,19 @@ document.addEventListener('click',e=>{
   case 'reset-evening':if(save(initialState('evening'))){clearTimeout(caseTimer);Object.assign(ui,defaults);go('missions');planEdit('plan');say('Démo du soir chargée : préparation de demain matin.',true);}break;
   case 'reset':if(save(initialState())){clearTimeout(caseTimer);Object.assign(ui,defaults);go('missions');say('Démo réinitialisée.',true);}break;
   case 'close':close();break;
+  case 'next-receipt':case 'wait-receipt':{
+   state=read();
+   const next=nextFieldMission(state);
+   if(!next){ui.mode='list';ui.folded=false;ui.selected=null;go('missions');break;}
+   if(next.created>state.now){
+    if(act!=='wait-receipt'||id!==next.id){display('receipt',screen.id);break;}
+    if(!save({...state,now:next.created}))break;
+   }
+   trigger=null;close();
+   if(state.active)display('mission',next.id);
+   else selectMission(next.id);
+   break;
+  }
   case 'to-history':{
    const row=state.history.find(h=>h.id===screen?.id);
    if(row)ui.reportDay=reportDate(row.time);

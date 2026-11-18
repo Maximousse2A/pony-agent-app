@@ -73,6 +73,15 @@ function propose(state){
  return {ids:best.ids,strategy:'smart'};
 }
 
+export function nextFieldMission(state){
+ if(state.active)return findMission(state.active.id);
+ for(const id of state.tour?.ids||[]){
+  const trip=itinerary(state,{ids:[id]});
+  if(trip.valid)return trip.steps[0].m;
+ }
+ return findMission(propose(state).ids[0]);
+}
+
 export function uncoveredNeeds(state,plan,trip=itinerary(state,plan)){
  const covered=new Set(trip.steps.filter(s=>!s.late&&!s.targetLate&&(s.finishAt-trip.departure)/60000<=trip.capacity).map(s=>s.m.id));
  return serviceMissions(state).filter(m=>!covered.has(m.id)).map(m=>{
