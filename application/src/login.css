@@ -23,9 +23,7 @@ body.demo-login-page {
 .demo-login-brand img { width: 102px; height: 38px; }
 .demo-login-brand span { border-left: 1px solid #8b7ca8; padding-left: 14px; font-size: 27px; font-weight: 500; }
 .demo-login-card { box-sizing: border-box; width: 100%; max-width: 440px; padding: 36px; border-radius: 22px; background: #fff; }
-.demo-login-eyebrow { margin: 0 0 14px; color: #665286; font-size: 11px; font-weight: 700; letter-spacing: 1.6px; }
-.demo-login-card h1 { margin: 0; color: #321e64; font-size: 32px; line-height: 1.12; font-weight: 650; letter-spacing: -1px; }
-.demo-login-intro { margin: 14px 0 28px; color: #666374; font-size: 15px; line-height: 1.5; }
+.demo-login-card h1 { margin: 0 0 24px; color: #321e64; font-size: 32px; line-height: 1.12; font-weight: 650; letter-spacing: -1px; }
 .demo-login-form { display: flex; flex-direction: column; }
 .demo-login-form label { margin-bottom: 8px; font-size: 14px; font-weight: 600; }
 .demo-login-form input { box-sizing: border-box; width: 100%; min-height: 50px; margin: 0 0 20px; padding: 12px 14px; border: 1px solid #d5d0df; border-radius: 10px; background: #fff; color: #282139; font: inherit; font-size: 16px; }
@@ -35,7 +33,6 @@ body.demo-login-page {
 .demo-login-form button:hover { background: #2917ae; }
 .demo-login-form input:focus-visible, .demo-login-form button:focus-visible { outline: 3px solid #9282ed; outline-offset: 3px; }
 .demo-login-error { min-height: 20px; margin: 8px 0 16px; color: #ac2947; font-size: 13px; line-height: 1.5; }
-.demo-login-footer { margin: 24px 0 0; color: #d3cbe2; text-align: center; font-size: 12px; }
 @media (max-width: 480px) {
   .demo-login-card { padding: 28px 24px; border-radius: 18px; }
   .demo-login-card h1 { font-size: 29px; }

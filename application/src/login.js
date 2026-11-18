@@ -18,9 +18,7 @@ export function requireDemoLogin(host, onSuccess) {
     <main class="demo-login" aria-labelledby="login-title">
       <div class="demo-login-brand"><img src="${logo}" alt="Pony" /><span>Ops</span></div>
       <section class="demo-login-card">
-        <p class="demo-login-eyebrow">ESPACE TERRAIN</p>
-        <h1 id="login-title">Bienvenue sur PonyOps.</h1>
-        <p class="demo-login-intro">Connectez-vous pour retrouver vos missions.</p>
+        <h1 id="login-title">Connexion</h1>
         <form class="demo-login-form">
           <label for="login-username">Nom d’utilisateur</label>
           <input id="login-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required />
@@ -30,7 +28,6 @@ export function requireDemoLogin(host, onSuccess) {
           <button type="submit">Se connecter <span aria-hidden="true">→</span></button>
         </form>
       </section>
-      <p class="demo-login-footer">PonyOps · L’essentiel pour votre tournée.</p>
     </main>`;
 
   const form = host.querySelector('form');
