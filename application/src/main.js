@@ -5,13 +5,14 @@ import './field.css';
 import {bindSlider} from './slider.js';
 import {appeal,resolveAI,resolveSupport} from './appeals.js';
 import {itinerary,propose,windows} from './tours.js';
+import {reportDate,shiftDay,validDay} from './reporting.js';
 import {shell} from './pages.js';
 import {missionSheet,receipt,demoPanel,filterPanel} from './sheets.js';
 import {coordinates,initialState,advance,findMission,scenarios,review,available,originPoint} from './domain.js';
 
 const root=document.querySelector('#app'),sheet=document.querySelector('#sheet'),announcement=document.querySelector('#announcement');
 const key='ponyops.angers.field.1';
-const defaults={priority:'all',location:null,type:'all',sort:'distance',status:'all',period:'day',mode:'list',selected:null,folded:true};
+const defaults={priority:'all',location:null,type:'all',sort:'distance',status:'all',period:'day',reportDay:null,mode:'list',selected:null,folded:true};
 const ui={...defaults};
 let screen=null,trigger=null;
 function read(){
@@ -52,7 +53,7 @@ function sheetContent(){
  if(screen.kind==='demo')return demoPanel(state,false);
  if(screen.kind==='reset')return demoPanel(state,true);
  if(screen.kind==='filter')return filterPanel(ui);
- if(screen.kind==='receipt'){const h=state.history.find(x=>x.id===screen.id);return h?receipt(h,page()==='missions'&&h.type==='battery'):'';}
+ if(screen.kind==='receipt'){const h=state.history.find(x=>x.id===screen.id);return h?receipt(h):'';}
  const m=findMission(screen.id);return m && m.id===state.active?.id?missionSheet(m,state):'';
 }
 function display(kind,id,focus=true){
@@ -234,7 +235,17 @@ document.addEventListener('click',e=>{
   case 'confirm-reset':display('reset');break;
   case 'reset':if(save(initialState())){clearTimeout(caseTimer);Object.assign(ui,defaults);go('missions');say('Démo réinitialisée.',true);}break;
   case 'close':close();break;
-  case 'to-history':ui.status='all';go('historique');break;
+  case 'to-history':{
+   const row=state.history.find(h=>h.id===screen?.id);
+   if(row)ui.reportDay=reportDate(row.time);
+   ui.status='all';go('historique');break;
+  }
+  case 'report-week':case 'report-day':{
+   ui.reportDay=act==='report-day'?id:shiftDay(ui.reportDay||reportDate(state.now),Number(id));
+   draw();
+   root.querySelector(`[data-act="${act}"][data-id="${id}"]`)?.focus({preventScroll:true});
+   break;
+  }
   case 'status':ui.status=id;draw();break;
   case 'period':ui.period=id;draw();break;
   case 'review-ok':case 'review-no':{
@@ -249,6 +260,10 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',async e=>{
  const el=e.target;
+ if(el.name==='report-date'){
+  if(validDay(el.value))ui.reportDay=el.value;
+  draw();root.querySelector('[name="report-date"]').focus({preventScroll:true});return;
+ }
  if(el.name==='add-stop'&&el.value){planEdit('add-stop',el.value);return;}
  if(el.name==='scenario'&&scenarios[el.value]){const current=read();current.scenario=el.value;if(save(current))say('Scénario enregistré.',true);return;}
  if(['type','priority','sort'].includes(el.name)){ui[el.name]=el.value;ui.mode='list';ui.selected=null;draw();return;}

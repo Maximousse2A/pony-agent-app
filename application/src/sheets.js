@@ -4,6 +4,7 @@ import bike from './assets/bike.jpg';
 import scooter from './assets/scooter.jpg';
 import {icon,typeMark} from './icons.js';
 import {types,scenarios,money,distance,tariff,day,hour,deadline} from './domain.js';
+import {durationText,receiptDurations} from './reporting.js';
 import {tag} from './pages.js';
 import {evidence,caseLabels} from './appeals.js';
 
@@ -64,12 +65,23 @@ function casePanel(h){
 }
 
 
-function receipt(h,onSite=false){
- let impact=h.status==='approved'?'Inclus dans vos revenus approuvés':h.status==='pending'?'En attente de décision · hors revenus approuvés':'Mission non rémunérée';
+function receipt(h){
+ const onSite=!requiresDeposit(h);
+ const impact={approved:'Inclus dans vos revenus approuvés',pending:'Montant en attente de décision',rejected:'Mission non rémunérée'};
  const photo=h.photo==='sample'?sample(h.vehicle):h.photo;
- return wrap('Reçu de mission · '+h.id,onSite?'Résultat de l’intervention':'Résultat du dépôt',`<div class="receipt-result ${h.status}">${tag(h.status)}<strong>${money(h.status==='rejected'?0:h.amount)}</strong><span>${impact}</span></div><h3>${h.status==='rejected'?'Motif du rejet':h.status==='pending'?'Pourquoi cette attente ?':'Motif de validation'}</h3><p>${h.reason}</p>${casePanel(h)}<dl>${line('Mission',types[h.type].name)}${line(onSite?'Lieu de l’intervention':'Lieu de dépôt',h.place)}${line(onSite?'Terminée le':'Déposée le',day(h.time)+' à '+hour(h.time))}${line('Tarif prévu',money(h.amount))}${h.gps?line('Position simulée',h.gps.lat+', '+h.gps.lng+' · ± '+h.gps.accuracy+' m'):''}</dl>
- ${photo?`<details><summary>${onSite?'Afficher la photo de l’intervention':'Afficher la photo du dépôt'}</summary><img class="receipt-photo" src="${photo}" alt="Photo jointe au dépôt"></details>`:''}${h.initialReason?notice('history','Décision de supervision · '+hour(h.reviewedAt),'Dépôt initialement en attente. '+h.initialReason):''}
- ${h.status==='pending'?`<details><summary>Simuler la décision de supervision</summary><p class="hint">Choisissez le résultat à jouer pour ce dossier.</p><div class="photo-actions">${btn('review-ok','Approuver le dépôt','check','secondary',h.id)}${btn('review-no','Rejeter le dépôt','cross','secondary',h.id)}</div></details>`:''}<p class="hint">Décision et rémunération simulées.</p>`,
+ const duration=receiptDurations(h);
+ const hasMeasures=[duration.work,duration.travel,duration.total].some(value=>value!==null);
+ const timingLabel=duration.source==='simulated'?'Durées fictives de démonstration':hasMeasures?'Durées mesurées pendant la mission':'Durées non enregistrées';
+ const times=`<h3>${timingLabel}</h3><dl>
+   ${line('Intervention',durationText(duration.work))}
+   ${line(onSite?'Trajet vers le véhicule':'Trajets véhicule et dépôt',durationText(duration.travel))}
+   ${line('Durée totale',durationText(duration.total))}</dl>`;
+ return wrap('Reçu de mission · '+h.id,onSite?'Résultat de l’intervention':'Résultat du dépôt',`
+   <div class="receipt-result ${h.status}"><b>${types[h.type].name}</b>${tag(h.status)}<strong>${money(h.status==='rejected'?0:h.amount)}</strong><span>${impact[h.status]}</span></div>
+   ${times}<h3>${h.status==='rejected'?'Motif du rejet':h.status==='pending'?'Pourquoi cette attente ?':'Motif de validation'}</h3><p>${h.reason}</p>${casePanel(h)}
+   <dl>${line(onSite?'Lieu de l’intervention':'Lieu de dépôt',h.place)}${line('Terminée le',day(h.time)+' à '+hour(h.time))}${line('Tarif prévu',money(h.amount))}${h.gps?line('Position simulée',h.gps.lat+', '+h.gps.lng+' · ± '+h.gps.accuracy+' m'):''}</dl>
+   ${photo?`<details><summary>${onSite?'Afficher la photo de l’intervention':'Afficher la photo du dépôt'}</summary><img class="receipt-photo" src="${photo}" alt="Photo de l’intervention"></details>`:''}${h.initialReason?notice('history','Décision de supervision · '+hour(h.reviewedAt),'Mission initialement en attente. '+h.initialReason):''}
+   ${h.status==='pending'?`<details><summary>Simuler la décision de supervision</summary><p class="hint">Choisissez le résultat à jouer pour ce dossier.</p><div class="photo-actions">${btn('review-ok','Approuver la mission','check','secondary',h.id)}${btn('review-no','Rejeter la mission','cross','secondary',h.id)}</div></details>`:''}<p class="hint">Décision et rémunération simulées.</p>`,
  btn('to-history','Voir l’historique','history','primary'));
 }
 function demoPanel(state,reset){
