@@ -19,6 +19,23 @@ const missionRows = [
 export const missions = missionRows.map(([id,type,place,zone,metres,vehicle,number,reason,age,point,destination,priority])=>({
   id,type,place,zone,metres,vehicle,number,reason,point,destination,priority,created:initialTime-age*minute,
 }));
+// Pilot instructions and coordinates are fictional; they are not demand forecasts.
+export const eveningTime = Date.parse('2026-11-16T19:00:00+01:00');
+const morningTarget = Date.parse('2026-11-17T07:30:00+01:00');
+const eveningEnd = Date.parse('2026-11-16T20:00:00+01:00');
+missions.push(...[
+  ['SMART-C','Place Bichon','Campus · zone pilote',[19,28],[12,35],'V-2101'],
+  ['SMART-H','Place Molière','Hôpital · zone pilote',[52,29],[42,15],'V-2102'],
+].map(([id,place,destination,point,targetPoint,number])=>({
+  id,type:'move',place,destination,point,targetPoint,number,vehicle:'Vélo',zone:'Centre-ville',metres:650,
+  priority:2,created:eveningTime-30*minute,scope:'evening',
+  reason:'Préparer la disponibilité de demain matin dans une zone de forte demande.',
+  smart:{targetAt:morningTarget,deliverBy:eveningEnd,reason:'Déposer avant la fin du service pour préparer le créneau de 7 h 30.',
+    retained:80,quantity:1},
+})));
+missions.find(m=>m.id==='AG-2048').smart={targetAt:Date.parse('2026-11-16T11:00:00+01:00'),
+  deliverBy:Date.parse('2026-11-16T11:00:00+01:00'),quantity:1,
+  reason:'Renfort de journée à la gare. Cette mission ne couvre pas le besoin de 7 h 30 déjà passé.'};
 export const findMission = id => missions.find(m => m.id === id);
 export const tariff = m => types[m.type].cents[m.zone === 'Centre-ville' ? 0 : 1];
 export const deadline = m => m.created + types[m.type].hours*60*minute;
@@ -44,8 +61,8 @@ const seedHistory = [
   ['R-103','battery','Rue Plantagenêt','Centre-ville','approved',1440],
   ['R-102','shop','Rue de la Chalouère','Périphérie','approved',1535],
 ];
-export function initialState() {
-  return {version:1,now:initialTime,scenario:'edge',active:null,history:seedHistory.map(([id,type,place,zone,status,ago])=>({
+export function initialState(mode='day') {
+  return {version:1,mode:mode==='evening'?'evening':'day',now:mode==='evening'?eveningTime:initialTime,scenario:'edge',active:null,history:seedHistory.map(([id,type,place,zone,status,ago])=>({
     id,type,place,zone,status,amount:tariff({type,zone}),time:initialTime-ago*minute,
     reason:status==='rejected'?'Le point relevé se situe hors de la zone autorisée.':status==='pending'?'La précision GPS demande une vérification de la supervision.':'Le dépôt a été validé.',
     photo:status==='rejected'?'sample':null,
@@ -56,7 +73,7 @@ export function initialState() {
 }
 export function available(state) {
   const used = new Set(state.history.map(h=>h.id));
-  return missions.filter(m => !used.has(m.id) && m.id!==state.active?.id);
+  return missions.filter(m => (m.scope||'day')===(state.mode||'day') && !used.has(m.id) && m.id!==state.active?.id);
 }
 export function resultFor(code) {
   if (code==='outside'||code==='border') return ['rejected','Le point relevé se situe hors de la zone autorisée.'];
@@ -73,7 +90,7 @@ export function gpsFor(code,m) {
   return {lat:lat.toFixed(5),lng:lng.toFixed(5),accuracy:scenarios[code].accuracy,inside:scenarios[code].inside};
 }
 const targets = {'Gare Saint-Laud':[56,83],'Dépôt des Capucins':[21,16],'Atelier Saint-Serge':[72,14]};
-export const depositPoint = m => targets[m.destination] || m.point;
+export const depositPoint = m => m.targetPoint || targets[m.destination] || m.point;
 export const originPoint = [54,55];
 export function zoneFor(m) {
   const centre=gpsFor('clear',{point:depositPoint(m)});
@@ -116,9 +133,9 @@ export function advance(state,event,payload,at=Date.now()) {
   if(event==='deposit' && a.gps && a.photo){
     stamp('completedAt');
     const [status,reason]=resultFor(a.case);
-    state.now+=minute;
+    state.now=Math.max(state.now+minute,Number.isFinite(a.expectedFinishAt)?a.expectedFinishAt:0);
     state.history.unshift({id:m.id,type:m.type,place:m.destination,zone:m.zone,amount:tariff(m),time:state.now,
-      zoneAtDeposit:zoneFor(m), photoSignal:a.case==='photo'?'unclear':'landmark',
+      smart:m.smart?{...m.smart}:null, zoneAtDeposit:zoneFor(m), photoSignal:a.case==='photo'?'unclear':'landmark',
       status,reason:m.type==='battery'&&status==='approved'?'La position et la photo de l’intervention ont été validées.':reason,source:'run',photo:a.photo,gps:a.gps,number:m.number,vehicle:m.vehicle,started:a.started,timing:{...a.timing}});
     state.position=depositPoint(m);
     for(const prop of ['tour','draft']){

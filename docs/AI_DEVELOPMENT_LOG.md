@@ -151,3 +151,11 @@ Références consultées : [Tailwind avec Vite](https://tailwindcss.com/docs/ins
 - Contrôle public à 390 × 844 : nouveau code et CSS chargés, ancien parcours PN-3017 repris dans le nouveau design, document et panneau sans débordement, action basse visible. Navigation vers la carte puis les revenus vérifiée ; aucune erreur ni avertissement console.
 - Aucun reset public effectué. Les données et la mission sélectionnée restent conservées ; les délais d’anciennes données continuent normalement de s’écouler.
 - Publication et QA finale consignées dans l’état de livraison. Les captures et comparaisons avant/après restent hors du dépôt public.
+
+## 18 novembre 2026 — Pony Smart et révision de la partie 2
+
+Les relances aux quatre interlocuteurs conduisent à placer la traduction des besoins de disponibilité en missions ciblées avant les refus de dépôt. La justification complète et les limites des données sont dans `docs/PART2.md`. Le registre discovery et les points d’entrée README ont été corrigés.
+
+Pony Express devient Pony Smart : tri terrain par défaut, choix lexicographique des missions selon les interventions critiques puis les dépôts ciblés, contrainte de service, échéance de dépôt distincte de la prise en charge, besoins omis visibles et scénario du soir isolé. Les preuves et revenus restent inchangés dans leur principe ; les reçus ciblés distinguent dépôt validé et présence future non mesurée. Les objectifs sont des hypothèses de pilote, pas des prévisions issues des taux de rétention.
+
+Validation : 37 tests métier passés, build réussi, parcours local joué jusqu’à l’approbation simulée et revenus à 13,50 €. Blocage d’un dépôt estimé à 20 h 01 vérifié dans le navigateur ; reprise de la photo après rechargement vérifiée. Le HTML autonome a été copié dans `public/terrain/index.html`. Aucun push ni déploiement effectué dans cette passe.
