@@ -1,5 +1,7 @@
 # Pony · Application agents
 
+**Version terrain actuelle :** [application/README.md](application/README.md). **Partie 2 :** [diagnostic, priorités et Pony Smart](docs/PART2.md). Les sections techniques ci-dessous décrivent le prototype initial à la racine ; la version terrain évolue dans `application/`.
+
 Prototype mobile-first pour le case study « Senior Product Manager, Internal Products & AI ». Interface en français, données fictives à Angers, React + Vite + Tailwind CSS, sans backend ni authentification réelle.
 
 **[Ouvrir la démo publiée](https://maximousse2a.github.io/pony-agent-app/)** · [État de livraison vérifié](docs/RELEASE_STATUS.md) · [Journal du développement assisté par IA](docs/AI_DEVELOPMENT_LOG.md)
@@ -75,6 +77,6 @@ L’ouverture du sélecteur de fichier, l’ajout d’une image et les secours s
 
 ## Partie 2
 
-Aucune fonctionnalité issue de discovery n’est construite avant réception des entretiens. Les réponses de Loïc, Karim, Inès et Thibault doivent d’abord alimenter le registre de preuves, les contradictions et la priorisation. L’échéance du dossier est le **19 novembre 2026 à 12 h, heure de Paris**.
+Les quatre entretiens et leurs relances ont été analysés. La priorité est désormais la traduction des besoins de disponibilité en missions ciblées via Pony Smart. Le parcours de refus et de contestation répond à la deuxième priorité. Voir [la restitution](docs/PART2.md) et [le registre](docs/discovery.md). L’échéance du dossier est le **19 novembre 2026 à 12 h, heure de Paris**.
 
 Le journal conservé dans le dépôt est une synthèse traçable ; il ne remplace pas l’export intégral des conversations demandé pour la restitution finale.
