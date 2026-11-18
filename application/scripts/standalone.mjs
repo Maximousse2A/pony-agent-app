@@ -9,5 +9,8 @@ for (const [tag, path] of [...html.matchAll(/<(?:script[^>]*src="([^"]+)"[^>]*><
   html = html.replace(tag, () => wrapped);
   await unlink(asset);
 }
+// Keep the license with the distributable single-file copy.
+const leafletLicense = await readFile(new URL('../vendor/leaflet/LICENSE', import.meta.url), 'utf8');
+html = html.replace('</head>', () => '<!-- Leaflet 1.9.4\n' + leafletLicense + '\n-->\n</head>');
 await writeFile(entry, html);
 await rmdir(new URL('assets/',entry)).catch(e => { if (e.code !== 'ENOTEMPTY' && e.code !== 'ENOENT') throw e; });

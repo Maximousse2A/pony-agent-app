@@ -1,17 +1,20 @@
 import './style.css';
+import {renderFieldMap,focusLocation,zoomBy} from './field-map.jsx';
+import {fieldMissions} from './navigation.js';
 import './field.css';
 import {bindSlider} from './slider.js';
 import {appeal,resolveAI,resolveSupport} from './appeals.js';
 import {itinerary,propose,windows} from './tours.js';
+import {reportDate,shiftDay,validDay} from './reporting.js';
 import {shell} from './pages.js';
 import {missionSheet,receipt,demoPanel,filterPanel} from './sheets.js';
-import {initialState,advance,findMission,scenarios,review,available,originPoint} from './domain.js';
+import {coordinates,initialState,advance,findMission,scenarios,review,available,originPoint} from './domain.js';
 
 const root=document.querySelector('#app'),sheet=document.querySelector('#sheet'),announcement=document.querySelector('#announcement');
 const key='ponyops.angers.field.1';
-const defaults={type:'all',sort:'distance',status:'all',period:'day',mode:'list',selected:null,folded:true};
+const defaults={priority:'all',location:null,type:'all',sort:'distance',status:'all',period:'day',reportDay:null,mode:'list',selected:null,folded:true};
 const ui={...defaults};
-let screen=null,trigger=null,view={zoom:1,x:0,y:0},drag=null;
+let screen=null,trigger=null;
 function read(){
  try{
   const s=JSON.parse(localStorage.getItem(key));
@@ -31,7 +34,20 @@ function save(next){
  catch{say('Enregistrement local impossible. Libérez de l’espace ou autorisez le stockage pour poursuivre.');return false;}
 }
 function page(){return ['historique','revenus'].includes(location.hash.slice(1))?location.hash.slice(1):'missions';}
-function draw(){clearSlide();root.classList.toggle("missions-home",page()==="missions");root.innerHTML=shell(page(),state,ui);syncMap();document.title=({missions:'Missions terrain',historique:'Historique',revenus:'Mes revenus'})[page()]+' · PonyOps';}
+function draw(){
+ clearSlide();
+ const currentPage=page();
+ root.classList.toggle('missions-home',currentPage==='missions');
+ root.innerHTML=shell(currentPage,state,ui);
+ if(currentPage==='missions'){
+  const {list,position}=fieldMissions(state,ui);
+  const trip=itinerary(state,ui.mode==='plan'?state.draft:state.tour);
+  const visible=ui.mode==='plan'?[...available(state)]:[...list];
+  if(state.active)visible.push(findMission(state.active.id));
+  renderFieldMap(root.querySelector('#mapHost'),{missions:visible,position,selected:ui.selected,trip,onSelect:selectMission,real:!!ui.location});
+ }else renderFieldMap(null);
+ document.title=({missions:'Missions terrain',historique:'Historique',revenus:'Mes revenus'})[currentPage]+' · PonyOps';
+}
 function sheetContent(){
  if(!screen)return '';
  if(screen.kind==='demo')return demoPanel(state,false);
@@ -69,64 +85,55 @@ function apply(event,payload,stay=false){
  if(!id||screen?.id!==id)return;
  if(!advance(current,event,payload)||!save(current))return;
  const pos=sheet.scrollTop;
- if(event==='deposit'){ui.mode='list';ui.selected=null;}
+ if(event==='deposit'){ui.mode='list';ui.selected=null;ui.folded=true;}
  draw();
  if(event==='deposit')display('receipt',id);
  else display('mission',state.active.id,!stay);
  if(stay)sheet.scrollTop=pos;
 }
 
-const clearSlide=bindSlider(root,(id,resume)=>{
+function acceptMission(id,resume=false){
  const current=read();
  if(resume){
   if(current.active?.id===id){state=current;display('mission',id);}
   return;
  }
  if(!current.active&&advance(current,'take',id)&&save(current)){
-  ui.selected=id;ui.mode='detail';draw();display('mission',id);
+  if(!ui.folded){ui.selected=id;ui.mode='detail';}
+  draw();display('mission',id);
  }
-});
-function mapSize(){
- const box=document.querySelector('#mapWindow'),plane=document.querySelector('#mapPlane');
- if(!box||!plane)return null;
- const width=box.clientWidth,height=box.clientHeight;
- const w=Math.max(width,height*1.4),h=w/1.4;
- plane.style.width=w+'px';plane.style.height=h+'px';
- return {plane,width,height,w,h};
 }
-function syncMap(){
- const s=mapSize();if(!s)return;
- const {plane,width,height,w,h}=s;
- const mx=(w*view.zoom-width)/2,my=(h*view.zoom-height)/2;
- view.x=Math.max(-mx,Math.min(mx,view.x));view.y=Math.max(-my,Math.min(my,view.y));
- plane.style.transform=`translate(-50%,-50%) translate(${view.x}px,${view.y}px) scale(${view.zoom})`;
- plane.style.setProperty('--inverse',1/view.zoom);
- root.querySelector('[data-act="zoom-out"]').disabled=view.zoom<=1;
- root.querySelector('[data-act="zoom-in"]').disabled=view.zoom>=5;
-}
-function framePoint(p){
- const s=mapSize();if(!s)return;
- const dock=document.querySelector('#fieldDock').getBoundingClientRect();
- const mobile=dock.right>s.width*.72;
- const x=mobile?s.width*.5:(dock.right+s.width)*.5;
- const y=mobile?Math.max(85,(dock.top+40)*.5):s.height*.48;
- const px=p[0]/100,py=p[1]/100;
- view.zoom=Math.min(5,Math.max(1,view.zoom,x/(px*s.w),(s.width-x)/((1-px)*s.w),y/(py*s.h),(s.height-y)/((1-py)*s.h)));
- view.x=x-s.width/2-(px-.5)*s.w*view.zoom;
- view.y=y-s.height/2-(py-.5)*s.h*view.zoom;
- syncMap();
+const clearSlide=bindSlider(root,acceptMission);
+let locating=false;
+function locate(focus=true){
+ if(locating)return;
+ const fallback=()=>{
+  locating=false;ui.location=null;
+  if(page()!=='missions')return;
+  draw();
+  if(focus)focusLocation(coordinates(state.position||originPoint));
+  say('Position indisponible. La position de démonstration est utilisée.',true);
+ };
+ if(!navigator.geolocation){fallback();return;}
+ locating=true;
+ navigator.geolocation.getCurrentPosition(({coords})=>{
+  locating=false;ui.location=[coords.latitude,coords.longitude];
+  if(page()!=='missions')return;
+  draw();if(focus)focusLocation(ui.location);
+ },fallback,{enableHighAccuracy:true,timeout:10000,maximumAge:30000});
 }
 function selectMission(id){
  const m=findMission(id);
  if(!m||(!available(state).some(it=>it.id===id)&&state.active?.id!==id))return;
  if(ui.type!=='all'&&m.type!==ui.type)ui.type='all';
- ui.mode='detail';ui.folded=false;ui.selected=id;view.zoom=1;
- draw();framePoint(m.point);
+ if(ui.priority!=='all'&&ui.priority!==String(m.priority))ui.priority='all';
+ ui.mode='detail';ui.folded=false;ui.selected=id;
+ draw();focusLocation(coordinates(m.point));
  root.querySelector('.vehicle-head h2')?.focus({preventScroll:true});
 }
 function fold(value=!ui.folded){
+ if(value){ui.mode='list';ui.selected=null;}
  ui.folded=value;draw();
- if(ui.selected&&ui.mode==='detail')framePoint(findMission(ui.selected).point);
  root.querySelector('.dock-toggle')?.focus({preventScroll:true});
 }
 function planEdit(act,id){
@@ -134,7 +141,6 @@ function planEdit(act,id){
  let draft=current.draft;
  if(act==='plan'){
   if(!draft)draft=current.tour?structuredClone(current.tour):propose(current,60);
-  view={zoom:1,x:0,y:0};
  }else if(act==='budget'){
   if(!windows.some(([min])=>min===Number(id)))return;
   draft=propose(current,Number(id));
@@ -143,7 +149,7 @@ function planEdit(act,id){
   const trip=itinerary(current,draft);
   if(!trip.valid||trip.steps.length!==draft.ids.length){say('La disponibilité a changé. Ajustez la proposition.');return;}
   current.tour={budget:draft.budget,ids:[...draft.ids]};current.draft=null;
-  if(save(current)){ui.mode='list';ui.selected=null;ui.type='all';ui.folded=false;draw();say('Tournée enregistrée. Les missions restent libres.',true);}
+  if(save(current)){ui.mode='list';ui.selected=null;ui.type='all';ui.priority='all';ui.folded=false;draw();say('Tournée enregistrée. Les missions restent libres.',true);}
   return;
  }else{
   const i=draft.ids.indexOf(id);
@@ -191,38 +197,24 @@ function scheduleReviews(){
   scheduleReviews();
  },delay+25);
 }
-function sizeMapToViewport(){
- if(page()!=='missions')return;
- if(ui.selected&&ui.mode==='detail')framePoint(findMission(ui.selected).point);
- else syncMap();
-}
 if(!CSS.supports('height','100dvh')){
  const setHeight=()=>root.style.setProperty('--field-viewport',(window.visualViewport?.height||window.innerHeight)+'px');
  setHeight();
  window.addEventListener('resize',setHeight);
  window.visualViewport?.addEventListener('resize',setHeight);
 }
-if('ResizeObserver' in window)new ResizeObserver(sizeMapToViewport).observe(root);
-else window.addEventListener('resize',sizeMapToViewport);
 let handleDrag=null,suppressClick=false;
 root.addEventListener('pointerdown',e=>{
  const handle=e.target.closest('.dock-toggle');
  if(handle){handleDrag={id:e.pointerId,y:e.clientY};handle.setPointerCapture(e.pointerId);return;}
- const box=e.target.closest('#mapWindow');if(!box||e.target.closest('button')||!e.isPrimary)return;
- drag={id:e.pointerId,x:e.clientX,y:e.clientY,dx:view.x,dy:view.y};box.setPointerCapture(e.pointerId);
-});
-root.addEventListener('pointermove',e=>{
- if(drag?.id!==e.pointerId)return;
- view.x=drag.dx+e.clientX-drag.x;view.y=drag.dy+e.clientY-drag.y;syncMap();
 });
 root.addEventListener('pointerup',e=>{
  if(handleDrag?.id===e.pointerId){
   const delta=e.clientY-handleDrag.y;handleDrag=null;
   if(Math.abs(delta)>24){suppressClick=true;fold(delta>0);setTimeout(()=>{suppressClick=false;},200);}
  }
- drag=null;
 });
-for(const name of ['pointercancel','lostpointercapture'])root.addEventListener(name,()=>{drag=null;handleDrag=null;});
+for(const name of ['pointercancel','lostpointercapture'])root.addEventListener(name,()=>{handleDrag=null;});
 
 
 document.addEventListener('click',e=>{
@@ -230,19 +222,30 @@ document.addEventListener('click',e=>{
  const {act,id}=b.dataset;
  switch(act){
   case 'select':selectMission(id);break;
+  case 'take':case 'resume':acceptMission(id,act==='resume');break;
   case 'fold':if(!suppressClick)fold();break;
   case 'list':ui.mode='list';ui.folded=false;draw();root.querySelector('.selected-row')?.scrollIntoView({block:'nearest'});break;
   case 'leave-plan':ui.mode='list';ui.folded=false;draw();break;
   case 'plan':case 'budget':case 'confirm-tour':case 'up':case 'down':case 'remove':planEdit(act,id);break;
   case 'clear-tour':{const current=read();current.tour=null;current.draft=null;if(save(current))draw();break;}
   case 'appeal':case 'support':setCaseAction(act,id);break;
-  case 'zoom-in':case 'zoom-out':view.zoom=Math.max(1,Math.min(5,view.zoom+(act==='zoom-in'?.25:-.25)));syncMap();break;
-  case 'recenter':view={zoom:1,x:0,y:0};framePoint(state.position||originPoint);break;
+  case 'zoom-in':case 'zoom-out':zoomBy(act==='zoom-in'?1:-1);break;
+  case 'recenter':locate();break;
   case 'mission':case 'receipt':case 'demo':case 'filter':display(act,id);break;
   case 'confirm-reset':display('reset');break;
-  case 'reset':if(save(initialState())){clearTimeout(caseTimer);Object.assign(ui,defaults);view={zoom:1,x:0,y:0};go('missions');say('Démo réinitialisée.',true);}break;
+  case 'reset':if(save(initialState())){clearTimeout(caseTimer);Object.assign(ui,defaults);go('missions');say('Démo réinitialisée.',true);}break;
   case 'close':close();break;
-  case 'to-history':ui.status='all';go('historique');break;
+  case 'to-history':{
+   const row=state.history.find(h=>h.id===screen?.id);
+   if(row)ui.reportDay=reportDate(row.time);
+   ui.status='all';go('historique');break;
+  }
+  case 'report-week':case 'report-day':{
+   ui.reportDay=act==='report-day'?id:shiftDay(ui.reportDay||reportDate(state.now),Number(id));
+   draw();
+   root.querySelector(`[data-act="${act}"][data-id="${id}"]`)?.focus({preventScroll:true});
+   break;
+  }
   case 'status':ui.status=id;draw();break;
   case 'period':ui.period=id;draw();break;
   case 'review-ok':case 'review-no':{
@@ -250,16 +253,20 @@ document.addEventListener('click',e=>{
    if(review(current,id,act==='review-ok'?'approved':'rejected')&&save(current)){draw();display('receipt',id);}
    break;
   }
-  case 'scan':case 'unlock':case 'work':case 'deposit':apply(act);break;
+  case 'arrive':case 'arrive-depot':case 'scan':case 'unlock':case 'work':case 'deposit':apply(act);break;
   case 'retry':case 'retake':apply(act,null,true);break;
   case 'sample':apply('photo','sample',true);break;
  }
 });
 document.addEventListener('change',async e=>{
  const el=e.target;
+ if(el.name==='report-date'){
+  if(validDay(el.value))ui.reportDay=el.value;
+  draw();root.querySelector('[name="report-date"]').focus({preventScroll:true});return;
+ }
  if(el.name==='add-stop'&&el.value){planEdit('add-stop',el.value);return;}
  if(el.name==='scenario'&&scenarios[el.value]){const current=read();current.scenario=el.value;if(save(current))say('Scénario enregistré.',true);return;}
- if(['type','sort'].includes(el.name)){ui[el.name]=el.value;ui.mode='list';ui.selected=null;draw();return;}
+ if(['type','priority','sort'].includes(el.name)){ui[el.name]=el.value;ui.mode='list';ui.selected=null;draw();return;}
  if(el.id!=='photoInput'||!el.files?.[0])return;
  const missionId=state.active?.id;
  const url=URL.createObjectURL(el.files[0]);
@@ -273,4 +280,6 @@ document.addEventListener('change',async e=>{
  finally{URL.revokeObjectURL(url);}
 });
 draw();
+if(page()==='missions'&&state.active)display('mission',state.active.id);
+navigator.permissions?.query({name:'geolocation'}).then(p=>{if(p.state==='granted'&&page()==='missions')locate(false);}).catch(()=>{});
 scheduleReviews();

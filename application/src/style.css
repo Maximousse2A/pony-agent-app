@@ -12,3 +12,51 @@ dialog{border:1px solid var(--border);border-radius:20px;padding:0;color:#282139
 @media(max-width:700px){body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}.topinner{height:55px;padding:0 16px}.brand img{width:66px;height:24px}.brand span{font-size:18px}.brand{gap:9px}.brand span{padding-left:9px}.demo{min-height:36px;padding:6px 12px}.desk-nav{display:none}.mobile-nav{position:fixed;z-index:4;inset:auto 0 0;display:flex;padding-bottom:env(safe-area-inset-bottom);height:calc(62px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:white}.mobile-nav .navitem{flex:1;flex-direction:column;gap:3px;color:#6a6478;font-size:12px;padding:4px 0}.mobile-nav .navitem.current{color:var(--royal);font-weight:650}.mobile-nav .navitem.current:before{content:'';position:absolute;inset:0 32% auto;height:3px;background:var(--royal);border-radius:0 0 2px 2px}main{padding:18px 14px 12px}.page-head{margin-bottom:15px;gap:8px}.page-head h1{font-size:34px;letter-spacing:-1.5px;margin:6px 0 4px}.page-head p,.dateline{font-size:13px}.tour-summary{display:none}.field-grid{grid-template-columns:minmax(0,1fr);gap:12px}.map-card{height:clamp(225px,32dvh,310px);border-radius:14px}.map-legend{padding:8px 12px;font-size:11px}.map-city{top:9px;left:9px;padding:5px 10px;font-size:12px}.north{top:9px;right:9px}.map-actions{right:8px;bottom:8px;border-radius:10px}.map-actions button{height:36px;width:36px}.map-actions button>.icon{width:17px}.pin span{width:31px;height:31px}.pin .icon{width:16px;height:16px}.map-note{font-size:9px}.queue{height:auto;border-radius:14px}.queue-head{padding:10px 14px 0}.queue h2{font-size:21px}.sortline{margin:0 14px 9px;font-size:12px}.mission-list{overflow:visible}.mission-row,.history-row{padding:14px 12px;gap:10px}.type-mark{width:38px;height:38px;border-radius:11px}.row-main strong,.row-end b{font-size:15px}.row-main>span{font-size:13px}.field-foot{font-size:11px;flex-wrap:wrap}.earn-grid{grid-template-columns:1fr}.balances{padding:0 16px}.balances>div{padding:14px 0}.earn-hero{padding:20px}.history-row .status{font-size:10px}.tabs{padding:8px;gap:2px}.tabs button{font-size:13px;padding:8px}.period{padding:0}.ledger{border-radius:14px}.ledger h2{font-size:19px;padding:16px}.in-progress{font-size:13px}.in-progress b{white-space:nowrap}dialog{margin:auto auto 0;border-radius:20px 20px 0 0;width:100%;max-width:100%;max-height:94dvh}.sheet-content{padding:4px 18px 12px}.sheet-top{padding:10px 18px 2px}.sheet-foot{padding:10px 18px calc(12px + env(safe-area-inset-bottom))}.sheet-content h2{font-size:29px}.field-foot i{display:none}.field-foot{column-gap:6px}#announcement{bottom:calc(64px + env(safe-area-inset-bottom))}}
 @media(max-width:355px){.map-actions{right:4px}.mission-row,.history-row{gap:8px;padding:12px 8px}.type-mark{width:32px;height:34px}.sheet-content{padding-inline:14px}.row-main strong{font-size:14px}.gps-meta{font-size:11px}.history-row .row-end{max-width:83px}.steps{gap:4px}.photo-actions{gap:2px}}
 
+
+.report-calendar {
+  max-width: 1040px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.calendar-head, .report-period {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.calendar-head input {
+  min-height: 42px;
+  padding: 4px 10px;
+  color: var(--purple);
+  background: var(--soft);
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 600;
+}
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7,minmax(0,1fr));
+  margin-top: 8px;
+  gap: 2px;
+}
+.calendar-days button {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  border-radius: 10px;
+  color: var(--purple);
+}
+.calendar-days small { color: var(--muted); }
+.calendar-days button:hover { background: var(--soft); }
+.calendar-days button[aria-pressed="true"] { background: var(--purple); color: white; }
+.calendar-days button[aria-pressed="true"] small { color: inherit; }
+.calendar-days i { width: 4px; height: 4px; border-radius: 50%; }
+.calendar-days .has-records { background: currentColor; }
+.report-period { max-width: 1040px; flex-wrap: wrap; margin-bottom: 16px; }
+.report-period .period { margin: 0; }
+.report-period > span { font-size: 14px; color: var(--muted); }
