@@ -1,3 +1,5 @@
+import {pickupDeadline,serviceRemaining} from './service.js';
+
 export const types = {
   move: { name: 'Relocalisation', short: 'Déplacement', icon: 'route', cents: [400, 350], hours: 6, action: 'Déplacer le véhicule', done: 'Véhicule déplacé', instruction: 'Installez le véhicule sur un emplacement autorisé.' },
   battery: { name: 'Changement de batterie', short: 'Batterie', icon: 'battery', cents: [250, 200], hours: 4, action: 'Changer la batterie', done: 'Batterie remplacée', instruction: 'Remplacez la batterie, puis vérifiez sa fixation.' },
@@ -38,7 +40,7 @@ missions.find(m=>m.id==='AG-2048').smart={targetAt:Date.parse('2026-11-16T11:00:
   reason:'Renfort de journée à la gare. Cette mission ne couvre pas le besoin de 7 h 30 déjà passé.'};
 export const findMission = id => missions.find(m => m.id === id);
 export const tariff = m => types[m.type].cents[m.zone === 'Centre-ville' ? 0 : 1];
-export const deadline = m => m.created + types[m.type].hours*60*minute;
+export const deadline = m => pickupDeadline(m.created,types[m.type].hours);
 export const money = c => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(c/100);
 export const distance = m => m < 1000 ? m+' m' : (m/1000).toLocaleString('fr-FR',{maximumFractionDigits:1})+' km';
 const format = (t,options) => new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',...options}).format(t);
@@ -71,9 +73,12 @@ export function initialState(mode='day') {
     photoSignal:status==='rejected'?'landmark':null,source:'seed',
   }))};
 }
-export function available(state) {
+export function serviceMissions(state) {
   const used = new Set(state.history.map(h=>h.id));
-  return missions.filter(m => (m.scope||'day')===(state.mode||'day') && !used.has(m.id) && m.id!==state.active?.id);
+  return missions.filter(m => (state.mode!=='evening'||m.scope==='evening') && !used.has(m.id) && m.id!==state.active?.id);
+}
+export function available(state) {
+  return serviceMissions(state).filter(m=>m.created<=state.now);
 }
 export function resultFor(code) {
   if (code==='outside'||code==='border') return ['rejected','Le point relevé se situe hors de la zone autorisée.'];
@@ -106,7 +111,7 @@ function openProof(a,m) {
 }
 export function advance(state,event,payload,at=Date.now()) {
   const a=state.active, m=a && findMission(a.id);
-  if(event==='take' && !a && available(state).some(item=>item.id===payload)) {
+  if(event==='take' && !a && serviceRemaining(state.now)>0 && available(state).some(item=>item.id===payload)) {
     state.active={id:payload,step:'travel',started:state.now,timing:{acceptedAt:at}}; return true;
   }
   if(!a) return false;

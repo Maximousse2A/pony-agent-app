@@ -4,11 +4,11 @@ import {fieldMissions} from './navigation.js';
 import './field.css';
 import {bindSlider} from './slider.js';
 import {appeal,resolveAI,resolveSupport} from './appeals.js';
-import {itinerary,propose,windows} from './tours.js';
+import {itinerary,propose} from './tours.js';
 import {reportDate,shiftDay,validDay} from './reporting.js';
 import {shell} from './pages.js';
 import {missionSheet,receipt,demoPanel,filterPanel} from './sheets.js';
-import {coordinates,initialState,advance,findMission,scenarios,review,available,originPoint} from './domain.js';
+import {coordinates,initialState,advance,findMission,scenarios,review,available,serviceMissions,originPoint} from './domain.js';
 import {requireDemoLogin} from './login.js';
 
 function startApplication(){
@@ -44,7 +44,7 @@ function draw(){
  if(currentPage==='missions'){
   const {list,position}=fieldMissions(state,ui);
   const trip=itinerary(state,ui.mode==='plan'?state.draft:state.tour);
-  const visible=ui.mode==='plan'?[...available(state)]:[...list];
+  const visible=ui.mode==='plan'?serviceMissions(state):[...list];
   if(state.active)visible.push(findMission(state.active.id));
   renderFieldMap(root.querySelector('#mapHost'),{missions:visible,position,selected:ui.selected,trip,onSelect:selectMission,real:!!ui.location});
  }else renderFieldMap(null);
@@ -101,7 +101,9 @@ function acceptMission(id,resume=false){
   if(current.active?.id===id){state=current;display('mission',id);}
   return;
  }
- const estimate=itinerary(current,{ids:[id],budget:480}).steps[0];
+ const trip=itinerary(current,{ids:[id]});
+ if(trip.afterShift){say('Cette mission ne peut pas être terminée pendant le service de 8 h à 20 h.',true);return;}
+ const estimate=trip.steps[0];
  if(!current.active&&advance(current,'take',id)){
   if(estimate)current.active.expectedFinishAt=estimate.finishAt;
   if(!save(current))return;
@@ -146,21 +148,21 @@ function planEdit(act,id){
  const current=read();
  let draft=current.draft;
  if(act==='plan'){
-  if(!draft)draft=current.tour?structuredClone(current.tour):propose(current,60);
- }else if(act==='budget'){
-  if(!windows.some(([min])=>min===Number(id)))return;
-  draft=propose(current,Number(id));
+  draft=propose(current);
+ }else if(act==='adjust-tour'&&current.tour){
+  draft=structuredClone(current.tour);
  }else if(!draft)return;
  else if(act==='confirm-tour'){
   const trip=itinerary(current,draft);
   if(!trip.valid||trip.steps.length!==draft.ids.length){say('La disponibilité a changé. Ajustez la proposition.');return;}
-  current.tour={budget:draft.budget,ids:[...draft.ids],strategy:'smart'};current.draft=null;
+  current.tour=structuredClone(draft);current.draft=null;
   if(save(current)){ui.mode='list';ui.selected=null;ui.type='all';ui.priority='all';ui.sort='smart';ui.folded=false;draw();say('Tournée Smart enregistrée. Acceptez chaque mission pour la réaliser.',true);}
   return;
  }else{
+  draft.manual=true;
   const i=draft.ids.indexOf(id);
   if(act==='add-stop'){
-   if(i>=0||!available(current).some(m=>m.id===id))return;
+   if(i>=0||!serviceMissions(current).some(m=>m.id===id))return;
    draft.ids.push(id);
   }else if(i<0)return;
   else if(act==='remove')draft.ids.splice(i,1);
@@ -171,12 +173,12 @@ function planEdit(act,id){
  }
  const pos=root.querySelector('.plan-scroll')?.scrollTop||0;
  const panelPos=root.querySelector('#dockContent')?.scrollTop||0;
- draft.ids=draft.ids.filter(id=>available(current).some(m=>m.id===id));
+ draft.ids=draft.ids.filter(id=>serviceMissions(current).some(m=>m.id===id));
  current.draft=draft;
  if(!save(current))return;
  ui.mode='plan';ui.folded=false;ui.selected=null;
  draw();
- if(!['plan','budget'].includes(act)){
+ if(!['plan','adjust-tour'].includes(act)){
   root.querySelector('.plan-scroll').scrollTop=pos;
   root.querySelector('#dockContent').scrollTop=panelPos;
  }
@@ -229,10 +231,17 @@ document.addEventListener('click',e=>{
  switch(act){
   case 'select':selectMission(id);break;
   case 'take':case 'resume':acceptMission(id,act==='resume');break;
+  case 'wait-next':{
+   const current=read(),next=itinerary(current,current.tour).steps[0]?.m;
+   if(current.active||!next||next.id!==id||next.created<=current.now)return;
+   current.now=next.created;
+   if(save(current)){ui.type='all';ui.priority='all';selectMission(id);}
+   break;
+  }
   case 'fold':if(!suppressClick)fold();break;
   case 'list':ui.mode='list';ui.folded=false;draw();root.querySelector('.selected-row')?.scrollIntoView({block:'nearest'});break;
   case 'leave-plan':ui.mode='list';ui.folded=false;draw();break;
-  case 'plan':case 'budget':case 'confirm-tour':case 'up':case 'down':case 'remove':planEdit(act,id);break;
+  case 'plan':case 'adjust-tour':case 'confirm-tour':case 'up':case 'down':case 'remove':planEdit(act,id);break;
   case 'clear-tour':{const current=read();current.tour=null;current.draft=null;if(save(current))draw();break;}
   case 'appeal':case 'support':setCaseAction(act,id);break;
   case 'zoom-in':case 'zoom-out':zoomBy(act==='zoom-in'?1:-1);break;

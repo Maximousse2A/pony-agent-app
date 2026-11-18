@@ -10,7 +10,7 @@ function depositReady(code='clear',m=first) {
 for(const [type,centre,outer,hours] of [['battery',250,200,4],['move',400,350,6],['charge',700,600,4],['shop',600,600,24]]){
  test('Tarifs et délai · '+type,()=>{
    for(const [zone,rate] of [['Centre-ville',centre],['Périphérie',outer]]){
-     const m=missions.find(x=>x.type===type&&x.zone===zone);assert.equal(tariff(m),rate);assert.equal(deadline(m)-m.created,hours*3600000);
+     const m=missions.find(x=>x.type===type&&x.zone===zone);assert.equal(tariff(m),rate);assert.equal(deadline({...m,created:initialTime})-initialTime,hours*3600000);
    }
  });
 }
