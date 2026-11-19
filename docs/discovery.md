@@ -13,3 +13,7 @@ La décision, les preuves, les dénominateurs, les hypothèses et la priorisatio
 5. Rentabilité en périphérie.
 
 La convergence des entretiens justifie le choix ; l’impact économique relatif n’est pas mesuré. Les objectifs pilotes du prototype sont fictifs. Les transcriptions du second tour sont celles fournies par Maxime dans la conversation du 18 novembre. La synthèse du premier tour est PonyOps-restitution.md, version 2.
+
+## Portée du changement de priorité
+
+La disponibilité ciblée reste la priorité n° 1. Les motifs de refus, la correction des preuves sur place, la contestation avec pièces conservées et les revenus lisibles restent des réponses mises en œuvre et présentées dans la restitution. Ils visent à aider Loïc et à réduire les sollicitations et le temps d’explication de Karim ; aucun effet terrain n’est encore mesuré. Les trajets perdus, la charge photo et la rentabilité en périphérie restent au diagnostic et au backlog.

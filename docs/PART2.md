@@ -6,7 +6,9 @@
 
 Je priorise la traduction des besoins de disponibilité locale en missions ciblées, réalisables dans les horaires du prestataire. Pony Smart remplace la logique de maximisation des gains de Pony Express par une proposition de tournée qui privilégie les interventions critiques, puis les dépôts ciblés à une destination et une échéance précises.
 
-Le problème de validation des dépôts reste la deuxième priorité. Le parcours de preuve, de décision expliquée et de contestation est conservé.
+La priorité n° 1 est la disponibilité au bon endroit et au bon moment. Elle structure la fonctionnalité principale présentée pour la partie 2. Les autres problèmes identifiés restent dans le diagnostic, avec leurs réponses déjà développées ou les investigations encore nécessaires.
+
+La deuxième priorité est de faciliter le travail du prestataire et de la supervision : expliquer les refus, permettre de corriger une preuve sur place, simplifier les contestations et rendre la rémunération compréhensible. Ces améliorations restent une partie à part entière de PonyOps. Elles visent notamment à éviter que Karim doive reconstituer chaque dossier pour répondre aux agents. Leur effet sur le temps passé et le nombre d’appels reste à mesurer.
 
 Ce choix ne repose pas sur une estimation chiffrée du manque à gagner : les données disponibles ne permettent pas cette comparaison. Il repose sur la convergence des entretiens et sur le lien direct entre les consignes données au prestataire et le résultat opérationnel attendu.
 
@@ -87,7 +89,28 @@ Le calcul est déterministe et local. Il n’y a ni moteur de prévision IA conn
 
 Le parcours de refus conserve une IA et un support simulés. Une mise en production exigerait une validation des règles et un contrôle des erreurs ; aucune régularisation réelle n’est déclenchée.
 
-## 4. Conditions de réussite et pilote
+## 4. Améliorations complémentaires conservées et valorisées
+
+Pony Smart donne la direction opérationnelle ; le parcours terrain permet au prestataire d’exécuter les missions et de comprendre leur résultat. La priorité n° 1 ne supprime aucune des améliorations ci-dessous.
+
+| Problème ou besoin | Réponse conservée dans le prototype | Bénéfice attendu et personnes concernées |
+| --- | --- | --- |
+| Refus sans explication | Motif écrit dans le reçu et accessible depuis l’historique ; distinction entre rejet et attente de vérification. | Loïc comprend la décision. Karim peut s’appuyer sur un dossier explicite plutôt que chercher l’origine du refus à chaque appel. Réduction des sollicitations à vérifier. |
+| Preuve ambiguë découverte trop tard | Précision GPS visible, consigne photo contextualisée, possibilité de reprendre la photo ou le relevé avant de transmettre. | Loïc peut agir pendant qu’il est sur place. Inès reçoit des éléments potentiellement plus exploitables. Les alertes du prototype sont simulées. |
+| Contestation trop longue, parfois abandonnée | Bouton de contestation réutilisant photo, position, précision et zone attendue ; chronologie conservant le refus initial et le résultat du réexamen. | Loïc n’a pas à reconstruire son dossier ; Karim et la supervision disposent d’un historique explicable. Le réexamen IA et le support sont simulés. |
+| Rémunération difficile à comprendre | Tarif de mission, montant et statut visibles ; séparation des revenus approuvés, en attente et refusés ; calculs cohérents avec l’historique et ses périodes. | Loïc sait à quoi correspondent les montants. Karim peut avoir moins d’explications à fournir sur la paie ; aucun gain réel ni paiement effectif n’est revendiqué. |
+| Parcours peu adapté au terrain | Trajet avant identification, guidage vers le véhicule et le dépôt, reprise de mission après ouverture du GPS, carte interactive et consignes par type d’intervention. | Moins d’ambiguïtés pour l’agent dans l’exécution. Le gain de temps terrain n’est pas encore mesuré. |
+| Besoin d’organiser son travail et d’anticiper ses gains | Choix de durée, estimation du trajet et des tarifs, tournée modifiable. Ces éléments de Pony Express sont conservés dans Pony Smart avec un autre ordre de priorité. | Les contraintes et la rémunération de Loïc restent visibles dans une tournée orientée vers les objectifs de Pony. |
+
+Ces fonctionnalités contribuent à plusieurs problèmes du classement : la collecte des preuves soutient également la supervision, et les durées/tarifs rendent les arbitrages du prestataire plus lisibles. Elles ne suffisent pas à revendiquer la résolution des trajets vers un véhicule devenu indisponible, l’automatisation complète des contrôles photo ou la rentabilité de la périphérie. Ces sujets restent explicitement au backlog.
+
+### Ce que nous mesurerions pour le prestataire
+
+- **Karim :** nombre d’appels liés aux refus ou à la paie pour 100 missions, et temps quotidien consacré à les expliquer. Son estimation d’une heure par jour est un point de départ déclaratif à confirmer.
+- **Loïc :** compréhension du motif et du montant, temps nécessaire pour déposer un recours, abandons de recours recueillis par entretien, possibilité de corriger sur place.
+- **Inès :** part des dossiers exploitables dès réception, temps de traitement et volume de sollicitations ; surveiller les validations erronées.
+
+## 5. Conditions de réussite et pilote
 
 1. **Définir le service attendu.** Avec les opérations et Karim, fixer des objectifs par lieu et créneau, les moyens disponibles, les horaires, les responsabilités et le traitement des besoins non couverts. Aucune pénalité individuelle ou modification tarifaire automatique.
 2. **Mesurer la situation initiale.** Relever la disponibilité locale à intervalles réguliers entre 7 h et 9 h, les éventuelles recherches sans véhicule, les arrivées/départs et le stock des zones de prélèvement. Distinguer vélos et trottinettes lorsque les données le permettent.
@@ -97,18 +120,19 @@ Le parcours de refus conserve une IA et un support simulés. Une mise en product
 
 Pour les refus, suivre séparément refus initiaux et définitifs, motif, recours abandonnés via entretiens, délai de décision et régularisation ; documenter le responsable du contrôle automatique.
 
-## 5. Démonstration en entretien
+## 6. Démonstration en entretien
 
 1. Ouvrir Missions : montrer « Priorités terrain », puis Pony Smart et l’ordre de décision.
 2. Charger la préparation du soir après confirmation de réinitialisation. Montrer les missions proposées et les besoins non couverts ; expliquer le cas spécifique de la gare.
 3. Ajouter la mission omise : montrer que la confirmation est bloquée si le dépôt dépasse 20 h. Retirer cette étape pour retrouver une tournée réalisable.
 4. Confirmer, accepter une mission ciblée et dérouler trajet, identification, intervention et dépôt. Montrer destination, échéance et motif.
 5. Soumettre la preuve, ouvrir le reçu puis l’historique et les revenus. Une mission en attente reste exclue des revenus approuvés ; une approbation simulée ne compte le montant qu’une fois.
-6. Revenir aux priorités : distinguer dépôt approuvé et présence demain non mesurée. Terminer sur le protocole de pilote.
+6. Montrer aussi la deuxième priorité : après réinitialisation de la journée, ouvrir Historique → Rejetées → Rue des Carmes. Lire le motif, montrer les preuves conservées et lancer la contestation simulée. Expliquer en quoi ce dossier lisible peut réduire le temps d’explication de Karim, sans annoncer de gain déjà mesuré.
+7. Conclure sur les deux résultats recherchés : améliorer la disponibilité pour Pony et faciliter l’exécution, la compréhension et le suivi pour les prestataires. Distinguer dépôt approuvé et présence demain non mesurée, puis présenter les mesures du pilote.
 
 ## Formulation orale
 
-« J’ai d’abord priorisé les refus de dépôt, parce que les quatre entretiens documentaient un problème de validation et de rémunération. Les relances ont changé mon diagnostic : le prestataire respecte son indicateur de prise en charge, mais ne reçoit aucun objectif de disponibilité par lieu et par heure, et ses agents ne commencent qu’à 8 h. J’ai donc fait évoluer Pony Express, centré sur les gains de l’agent, en Pony Smart : une tournée qui traduit les besoins de Pony en consignes ciblées et réalisables. Elle montre aussi ce qu’elle ne couvre pas, notamment la gare à 7 h 30. Le prototype démontre ce fonctionnement ; un pilote devra mesurer son effet sur la disponibilité et ses coûts. »
+« J’ai d’abord priorisé les refus de dépôt, parce que les quatre entretiens documentaient un problème de validation et de rémunération. Les relances ont changé mon diagnostic : le prestataire respecte son indicateur de prise en charge, mais ne reçoit aucun objectif de disponibilité par lieu et par heure, et ses agents ne commencent qu’à 8 h. J’ai donc fait évoluer Pony Express, centré sur les gains de l’agent, en Pony Smart : une tournée qui traduit les besoins de Pony en consignes ciblées et réalisables. Elle montre aussi ce qu’elle ne couvre pas, notamment la gare à 7 h 30. En parallèle, je conserve les motifs de refus explicites, les preuves réutilisables, les contestations simples et la lisibilité des revenus : ces améliorations aident Loïc et visent à réduire le temps que Karim passe à expliquer les décisions. La disponibilité reste la priorité n° 1 ; l’efficacité du prestataire reste un objectif du produit. Un pilote devra mesurer ces deux effets et leurs coûts. »
 
 ## Vérification de cette livraison
 
@@ -116,4 +140,4 @@ Pour les refus, suivre séparément refus initiaux et définitifs, motif, recour
 - Compilation Vite et génération du HTML autonome réussies. Un avertissement de taille du bundle demeure ; aucune erreur de compilation.
 - Dans le navigateur local : passage au scénario du soir, ajout d’une étape finissant à 20 h 01 avec confirmation désactivée, retrait et confirmation d’une tournée valide, mission ciblée jusqu’au dépôt, reprise après rechargement avec photo, passage en attente puis approbation simulée et revenus approuvés à 13,50 €.
 - Aucune erreur console relevée pendant ce parcours. L’inspection concerne le navigateur local ; elle ne constitue pas une certification iPhone/Android ou une mesure terrain.
-- Version préparée localement ; aucun nouveau déploiement GitHub Pages effectué dans cette livraison.
+- Publication de Pony Smart et de la connexion de démonstration réussie le 18 novembre : commit `abbb6fe54988c1aadd9ef4b18ae9ef7c6bf2b669`, workflow GitHub Actions `44319571783`. Le HTML public a été comparé au build local. La présente clarification de la restitution ne modifie pas l’application.
